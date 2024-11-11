@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet">
+    <title>Charlie Giannis' Portfolio</title>
+    <link rel="stylesheet" href="sectionvars.css">
+    <link rel="stylesheet" href="home/section1.css">
+    <link rel="stylesheet" href="openmusic/section2.css">
+    <link rel="stylesheet" href="carpass/section3.css">
+    <link rel="stylesheet" href="utmsports/section4.css">
+    <link rel="stylesheet" href="contact/section5.css">
+    <link rel="stylesheet" href="modal/modal.css">
+</head>
+
+
+<body>
+    <div class="overlay">
+        <button class="nav-button" data-section="section-2">
+            <img src="topbar/openmusic_tint.png" alt="Openmusic Icon" class="button-icon nbutton-1">
+            Openmusic
+        </button>
+        <button class="nav-button" data-section="section-3">
+            <img src="topbar/carpass_tint.png" alt="CarPass Icon" class="button-icon nbutton-2"
+                style="-webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.6)); mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.3));">
+            CarPass
+        </button>
+        <button class="nav-button" data-section="section-4">
+            <img src="topbar/utmsports_tint.png" alt="Openmusic Icon" class="button-icon nbutton-3">
+            UTM Sports
+        </button>
+    </div>
+    <canvas id="particleCanvas" class="particleCanvas"></canvas>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <span class="close-button" id="closeButton">&times;</span>
+            <h2 class="modal-header">
+                Dot Visualizer
+            </h2>
+            <div class="modal-subheader">
+                <img src="modal/apple.terminal.png" alt="Icon" class="subheader-icon">
+                <span class="subheader-text">
+                    JS, HTML5 Canvas
+                </span>
+            </div>
+            <p class="modal-body">
+                20,000 particles influenced by a 10x10 grid of vector cells. The design changes based on the section
+                you're scrolled to. Try it!
+                <br><br>
+                Custom velocity and acceleration modifiers power the designs, as well as angular accelerations on each
+                cell. For efficiency, the particles are drawn on a ctx ImageData object before being pushed to the
+                canvas.
+            </p>
+        </div>
+    </div>
+
+
+    <div class="section-1">
+        <div class="section-1-texts-box">
+            <div class="section-1-titles-box">
+                <p class="section-1-title-middle">
+                    Charlie Giannis
+                </p>
+                <p class="section-1-title-bottom">
+                    3rd Year UTM CompSci Specialist and iOS App Developer
+                </p>
+                <p class="section-1-next-subtitle">
+                    Scroll to explore my projects.
+                </p>
+            </div>
+        </div>
+        <div class="particle-buttons">
+            <button class="show-info-button section-1-button"
+                onclick="openModal('Dot Visualizer', 'JS, HTML5 Canvas, WebGL Shaders', '20,000 particles influenced by a 10x10 grid of vector cells. The design changes based on the section you\'re scrolled to. Try it\!<br><br>Custom velocity and acceleration modifiers power the designs, as well as angular accelerations on each cell. For efficiency, WebGL vertex shaders are used to batch draw calls and forward computing to the GPU. Two box-shadows make the bloom effect.');">
+                <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
+                <span class="button-text">Learn More</span>
+            </button>
+            <button id="toggleanimation" style="z-index: 100; pointer-events: all;" class="toggle-canvas-button"
+                onclick="toggleAnimation()">
+                Toggle Particles
+            </button>
+        </div>
+    </div>
+
+
+
+
+    <div class="section-2">
+        <div class="section-2-header">
+            <!-- Left Section -->
+            <div class="left-section">
+                <!-- Top part: Icon and Title -->
+                <div class="top-part">
+                    <img src="openmusic/openmusic_icon_dark.png"
+                        style="width: var(--text-size-title); height: var(--text-size-title); border-radius: calc(var(--text-size-title) / 4); margin-right: 10px">
+                    <p class="section-2-header-title">Openmusic</p>
+                </div>
+                <!-- Bottom part: Subtitle text -->
+                <div class="bottom-part">
+                    <p>Free Music Streaming Platform</p>
+                </div>
+            </div>
+
+            <!-- Right Section -->
+            <div class="right-section">
+                <a href="https://github.com/OatsCG/Openmusic" target="_blank" rel="noopener noreferrer"
+                    style="filter: brightness(0.9);">
+                    <img src="github-white.png" style="height: var(--image-button-size);">
+                </a>
+                <a href="https://apps.apple.com/ca/app/openmusic/id6474526827" target="_blank"
+                    rel="noopener noreferrer">
+                    <img src="downloadappstore.svg" style="height: var(--image-button-size);">
+                </a>
+            </div>
+        </div>
+
+
+        <div class="section-2-scroll-container">
+            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #353540;">
+                <image id="openmusic_1" width="40%" src="openmusic/openmusic_1.png"
+                    style="max-height: 90%; padding-left: 6%;">
+                </image>
+                <div width="60%" style="padding-left: 8%; padding-right: 12%;">
+                    <h1>
+                        Stream and Download From Over 160 Million Songs
+                    </h1>
+                    <p>
+                        Stream, download, and discover music from a custom database in a beautiful UI.
+                        <br>
+                        <span style="font-size: var(--text-size-tile-p); opacity: 0.7">
+                            Scroll to explore features.
+                        </span>
+                    </p>
+                </div>
+            </div>
+            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #403540;">
+                <div width="60%"
+                    style="padding-right: 8%; padding-left: 12%; text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
+                    <h1>
+                        Explore and Pick a Vibe to Keep the Music Going
+                    </h1>
+                    <p>
+                        Pick a Vibe in the Explore page and discover the top albums. Add albums to your library and
+                        download to listen offline.
+                    </p>
+                    <button class="show-info-button"
+                        onclick="openModal('Explore Page', 'Swift/SwiftUI, Node.js, Python, Spotify API', 'Vibes are pre-generated via ChatGPT, and contain metadata like energy, acousticness, etc. A Node.js server fetches songs that match the Vibe from the Spotify API, matches them with Openmusic songs, and serves that to the client.<br><br>\'Top Albums\' in the Explore page are pulled from last.fm.');">
+                        <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
+                        <span class="button-text">Learn More</span>
+                    </button>
+                </div>
+                <image width="40%" src="openmusic/openmusic_2.png" id="openmusic_2"
+                    style="max-height: 120%; padding-right: 6%; padding-bottom: 100px"></image>
+            </div>
+            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #303b40;">
+                <div
+                    style="padding-left: 3%; padding-right: 3%; padding-top: 0%; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <h1 style="padding-top:0%; padding-left: 5%; padding-right: 5%; margin-top: 0px;">
+                        Custom Themes to Make You Feel at Home
+                    </h1>
+                    <div style="display: flex; gap: 1%; justify-content: center; align-items: flex-end;">
+                        <div id="openmusic_3a" style="max-width: 19%; height: auto;">
+                            <img src="openmusic/openmusic_3a.png" style="width: 100%; height: auto;">
+                        </div>
+                        <div id="openmusic_3b" style="max-width: 19%; height: auto;">
+                            <img src="openmusic/openmusic_3b.png" style="width: 100%; height: auto;">
+                        </div>
+                        <div id="openmusic_3c" style="max-width: 19%; height: auto;">
+                            <img src="openmusic/openmusic_3c.png" style="width: 100%; height: auto;">
+                        </div>
+                        <div id="openmusic_3d" style="max-width: 19%; height: auto;">
+                            <img src="openmusic/openmusic_3d.png" style="width: 100%; height: auto;">
+                        </div>
+                        <div id="openmusic_3e" style="max-width: 19%; height: auto;">
+                            <img src="openmusic/openmusic_3e.png" style="width: 100%; height: auto;">
+                        </div>
+                        <div id="openmusic_3f" style="max-width: 19%; height: auto;">
+                            <img src="openmusic/openmusic_3f.png" style="width: 100%; height: auto;">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #504047;">
+                <div style="width: 20%; max-height: 95%; padding-left: 5%; padding-top: 3%; padding-bottom: 3%;">
+                    <video id="openmusic_4a"
+                        style="max-width: 100%; height: auto; border-radius: 1.5vw; filter: drop-shadow(0 0 1.00rem #00000055);"
+                        muted>
+                        <source src="openmusic/openmusic_4a.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div style="width: 60%; padding-right: 3%; padding-left: 3%; text-align: center;">
+                    <h1>
+                        Automatically Import Apple Music or Spotify Playlists
+                    </h1>
+                    <img id="playButton" src="openmusic/playbutton.png" alt="Play Button"
+                        style="width: 45px; height: auto; cursor: pointer;">
+                </div>
+                <div style="width: 20%; max-height: 95%; padding-right: 5%; padding-top: 3%; padding-bottom: 3%;">
+                    <video id="openmusic_4b"
+                        style="max-width: 100%; height: auto; border-radius: 1.5vw; filter: drop-shadow(0 0 1.00rem #00000055);"
+                        muted>
+                        <source src="openmusic/openmusic_4b.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #403a35;">
+                <div width="60%" style="padding-left: 3%;  padding-bottom: 10%; text-align: start;">
+                    <div style="display: flex; align-items: center; text-align: end;">
+                        <image src="openmusic/openmusic_5a.png"
+                            style="max-width: 65%; padding-right: 5%; padding-top: 30%;"></image>
+                        <div
+                            style="max-width: 40%; padding-right: 2%; text-align: end; display: flex; flex-direction: column; align-items: flex-end">
+                            <p>
+                                Control music by waving your hand in Car Mode,
+                                or skip with the volume buttons.
+                            </p>
+                            <button class="show-info-button"
+                                onclick="openModal('Custom Controls', 'Swift/SwiftUI, Image Buffers, 3D Scanning', 'Car Mode uses the TrueDepth sensor\'s depth buffer to read \'wave\' (skip) and \'hover\' (play/pause) gestures in real time.<br><br>Volume buttons are hooked to enable \'Volume Skip\' controls, letting you skip songs from your pocket even when your phone is off.');">
+                                <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
+                                <span class="button-text">Learn More</span>
+                            </button>
+                        </div>
+                    </div>
+                    <h1 style="padding-right: 9%; padding-left: 2%; margin-top: -0.5%">
+                        Experience Your Music in a Beautiful Fullscreen Mode
+                    </h1>
+                </div>
+                <div style="height: 100%; width: 30%">
+                    <video id="omv1"
+                        style="max-height: 230%; width: auto; left: 0; top: 0; margin-right: 0; margin-top: -305px; filter: drop-shadow(0 0 1.00rem #00000055);"
+                        autoplay muted loop>
+                        <source src="openmusic/openmusic_5b.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #353540;">
+                <image id="openmusic_6" width="50%" src="openmusic/openmusic_6.png"
+                    style="max-height: 95%; padding-left: 3%;">
+                </image>
+                <div width="50%" style="padding-left: 3%; padding-right: 6%;">
+                    <h1>
+                        <span style="opacity: 0.9; font-weight: 500;">Powered by the </span><span>Free</span><span
+                            style="opacity: 0.9; font-weight: 500;">, </span><span>Open-Source</span><span
+                            style="opacity: 0.9; font-weight: 500;">, and </span><span>Downloadable</span><span
+                            style="opacity: 0.9; font-weight: 500;"> Openmusic Database</span>
+                    </h1>
+                    <p>
+                        The largest public music database including YouTube stream links, clean/explicit versions, and
+                        indexing.
+                    </p>
+                    <p style="font-size: var(--text-size-tile-p); opacity: 0.8; margin-top: -2%">160 million songs (4x
+                        larger than its competition,
+                        MusicBrainz)
+                    </p>
+                    <button class="show-info-button"
+                        onclick="openModal('Openmusic Database', 'PostgreSQL, Python', 'Webscraped from YouTube Music, it really is the largest publicly downloadable music database.<br><br>A Python script is run biweekly, and fetches all metadata in less than 3 days. No audio is downloaded, maintaining legality.');">
+                        <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
+                        <span class="button-text">Learn More</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="section-2-navigation">
+            <button id="prevArrow2">
+                <img src="chevronleft.png" alt="Previous" />
+            </button>
+            <div class="section-2-dots"></div>
+            <button id="nextArrow2">
+                <img src="chevronright.png" alt="Next" />
+            </button>
+        </div>
+    </div>
+    <div class="section-3">
+        <div class="section-3-header">
+            <div class="left-section">
+                <div class="top-part">
+                    <img src="carpass/carpass_icon.png"
+                        style="width: var(--text-size-title); height: var(--text-size-title); border-radius: calc(var(--text-size-title) / 4); margin-right: 10px">
+                    <p class="section-2-header-title">CarPass</p>
+                </div>
+                <div class="bottom-part">
+                    <p>Car Scheduler for Families</p>
+                </div>
+            </div>
+            <div class="right-section">
+                <a href="https://github.com/OatsCG/CarPass" target="_blank" rel="noopener noreferrer"
+                    style="filter: brightness(0.9);">
+                    <img src="github-white.png" style="height: var(--image-button-size);">
+                </a>
+                <a href="https://apps.apple.com/ca/app/carpass/id6504717229" target="_blank" rel="noopener noreferrer">
+                    <img src="downloadappstore.svg" style="height: var(--image-button-size);">
+                </a>
+            </div>
+        </div>
+
+        <div class="section-3-scroll-container">
+            <div class="section-3-cell" style="box-shadow: inset 0 0 80px #363540;">
+                <div width="60%" style="padding-right: 8%; padding-left: 12%;">
+                    <h1>
+                        Effortlessly Schedule Your Family Car
+                    </h1>
+                    <p>
+                        Request your family's car, view a neat schedule for when the car is yours, and get notified when
+                        it's someone else's turn.
+                        <br>
+                        <span style="font-size: var(--text-size-tile-p); opacity: 0.7">
+                            Scroll to explore features.
+                        </span>
+                    </p>
+                </div>
+                <image id="carpass_1" width="40%" src="carpass/carpass_1.png"
+                    style="max-height: 90%; padding-right: 6%;"></image>
+            </div>
+            <div class="section-3-cell" style="box-shadow: inset 0 0 80px #403540;">
+                <image width="30%" src="carpass/carpass_2a.png" id="carpass_2a"
+                    style="max-height: 120%; padding-left: 6%; padding-bottom: 100px"></image>
+                <image width="30%" src="carpass/carpass_2b.png" id="carpass_2b"
+                    style="max-height: 120%; padding-bottom: 100px"></image>
+                <div width="40%" style="padding-left: 8%; padding-right: 12%; text-align: left;">
+                    <h1>
+                        Request Your Family Car
+                    </h1>
+                    <p>
+                        Pick a range and notify your family members.
+                        Accept requests, and get notifications to pass the car on.
+                    </p>
+                </div>
+            </div>
+            <div class="section-3-cell" style="box-shadow: inset 0 0 80px #403535;">
+                <image width="40%" src="carpass/carpass_3.png" id="carpass_3"
+                    style="max-height: 90%; padding-left: 6%;"></image>
+                <div width="60%" style="padding-left: 8%; padding-right: 12%; text-align: left;">
+                    <h1>
+                        Differentiate Yourself Across CarPass
+                    </h1>
+                    <p>
+                        Customize your name and colour, and see other members' profiles in real time.
+                        Invite people to your car, or join someone else's from their Car ID.
+                    </p>
+                    <button class="show-info-button"
+                        onclick="openModal('Design Guidelines', 'Swift/SwiftUI, Python, Figma', 'CarPass was built modularly, and was designed in Figma with my brother while travelling Europe (bengiannis.com). The final app was coded in 5 days.<br><br>CarPass dynamically fetches from the database allowing your invites, colour choices, and family\'s colours to be reflected immediately in real time.');">
+                        <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
+                        <span class="button-text">Learn More</span>
+                    </button>
+                </div>
+            </div>
+            <div class="section-3-cell" style="box-shadow: inset 0 0 80px #353540;">
+                <image id="carpass_4" width="50%" src="carpass/carpass_4.png"
+                    style="max-height: 90%; padding-left: 3%;"></image>
+                <div width="50%" style="padding-left: 3%; padding-right: 6%;">
+                    <h1>
+                        Live Updating So You're Always Up-to-Date
+                    </h1>
+                    <p>
+                        A custom lightweight database built from the ground up, an open-source server, and a client that
+                        live-fetches content with industry standards.
+                    </p>
+                    <button class="show-info-button"
+                        onclick="openModal('CarPass API', 'Node.js, Python', 'TODO: WRITE THIS');">
+                        <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
+                        <span class="button-text">Learn More</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="section-3-navigation">
+            <button id="prevArrow3">
+                <img src="chevronleft.png" alt="Previous" />
+            </button>
+            <div class="section-3-dots"></div>
+            <button id="nextArrow3">
+                <img src="chevronright.png" alt="Next" />
+            </button>
+        </div>
+    </div>
+    <div class="section-4">
+        <div class="section-4-header">
+            <div class="left-section">
+                <div class="top-part">
+                    <img src="utmsports/utmsports_icon.png"
+                        style="width: var(--text-size-title); height: var(--text-size-title); border-radius: calc(var(--text-size-title) / 4); margin-right: 10px">
+                    <p class="section-4-header-title">UTM Sports</p>
+                </div>
+                <div class="bottom-part">
+                    <p>UTM Drop-In Sports Schedule</p>
+                </div>
+            </div>
+            <div class="right-section">
+                <a href="https://github.com/OatsCG/UTM-Drop-in-Sports" target="_blank" rel="noopener noreferrer"
+                    style="filter: brightness(0.9);">
+                    <img src="github-white.png" style="height: var(--image-button-size);">
+                </a>
+                <p>
+                    Coming Soon
+                </p>
+                <!-- <a href="https://apps.apple.com/ca/app/openmusic/id6474526827" target="_blank" rel="noopener noreferrer">
+                    <img src="downloadappstore.svg" height="50px">
+                </a> -->
+            </div>
+        </div>
+
+        <div class="section-4-scroll-container">
+            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #363540;">
+                <image id="utmsports_1" width="40%" src="utmsports/utmsports_1.png"
+                    style="max-height: 90%; padding-left: 6%;"></image>
+                <div width="60%" style="padding-left: 8%; padding-right: 12%;">
+                    <h1>
+                        Sort and Discover Drop-In Sport Sessions at UofT Mississauga
+                    </h1>
+                    <p>
+                        See all sports, workouts, recreational walks, and pool activities happening at UTM. View
+                        information about events, register or book tickets, and earn medals for participating.
+                        <br>
+                        <span style="font-size: var(--text-size-tile-p); opacity: 0.7">
+                            Scroll to explore features.
+                        </span>
+                    </p>
+                </div>
+            </div>
+            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #353743;">
+                <div width="60%"
+                    style="padding-right: 8%; padding-left: 12%; text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
+                    <h1>
+                        Explore Sessions Happening on Campus
+                    </h1>
+                    <p>
+                        Filter by activity or "Women's Only" sessions, search events, or ask Siri for information with
+                        UTM Sports.
+                    </p>
+                    <button class="show-info-button"
+                        onclick="openModal('Filter, Search, and Siri', 'Swift/SwiftUI, App Intents, JSON', 'TODO: Write this');">
+                        <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
+                        <span class="button-text">Learn More</span>
+                    </button>
+                </div>
+                <image src="utmsports/utmsports_2.png" id="utmsports_2"
+                    style="max-width:40%; max-height: 120%; padding-right: 6%; padding-bottom: 100px"></image>
+            </div>
+            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #403c35;">
+                <video autoplay muted loop
+                    style="max-width: 20%; max-height: 90%; margin-left: 6%; border-radius: 1.5vw;">
+                    <source src="utmsports/utmsports_3a.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div style="max-width: 40%; padding-right: 8%; padding-left: 8%; text-align: center;">
+                    <h1>
+                        Earn Medals for Participation
+                    </h1>
+                    <p>
+                        Save events and collect bronze, silver, and gold medals for each sport and activity.
+                    </p>
+                </div>
+                <image src="utmsports/utmsports_3b.png" id="section-4-image-2"
+                    style="max-width: 20%; max-height: 100%; padding-right: 6%;"></image>
+            </div>
+            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #403540;">
+                <div width="60%" style="padding-right: 8%; padding-left: 12%; text-align: right;">
+                    <h1>
+                        Track Upcoming Events and Set Reminders
+                    </h1>
+                    <p>
+                        Save events to your schedule and get notified so you never miss an opportunity to earn medals.
+                    </p>
+                </div>
+                <image src="utmsports/utmsports_4.png" id="utmsports_4"
+                    style="max-width: 40%; max-height: 120%; padding-right: 6%; padding-bottom: 300px"></image>
+            </div>
+            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #353540;">
+                <image width="50%" id="utmsports_5" src="utmsports/utmsports_5.png"
+                    style="max-height: 95%; padding-left: 3%;"></image>
+                <div width="50%" style="padding-left: 3%; padding-right: 6%;">
+                    <h1>
+                        Live Updating For All-Day Play
+                    </h1>
+                    <p>
+                        Constant time updates lets you know that an event is happening soon, and biweekly updates to the
+                        database keep the app up-to-date.
+                    </p>
+                    <button class="show-info-button"
+                        onclick="openModal('Drop-Ins Schedule', 'Python, JSON', 'TODO: Write this');">
+                        <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
+                        <span class="button-text">Learn More</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="section-4-navigation">
+            <button id="prevArrow4">
+                <img src="chevronleft.png" alt="Previous" />
+            </button>
+            <div class="section-4-dots"></div>
+            <button id="nextArrow4">
+                <img src="chevronright.png" alt="Next" />
+            </button>
+        </div>
+    </div>
+    <div class="section-5">
+        <p class="section-5-header">
+            Contact Me
+        </p>
+        <p class="section-5-email">
+            <a href="mailto:charlie.giannis@mail.utoronto.ca">charlie.giannis@mail.utoronto.ca</a>
+        </p>
+        <div class="social-links">
+            <a href="https://github.com/OatsCG" target="_blank" rel="noopener noreferrer"
+                style="filter: brightness(0.9);">
+                <img src="github-white.png" style="height: var(--image-button-size);">
+            </a>
+            <a href="https://github.com/OatsCG" target="_blank" rel="noopener noreferrer"
+                style="filter: brightness(0.9);">
+                <img src="contact/linkedin.png" style="height: var(--image-button-size);">
+            </a>
+        </div>
+    </div>
+</body>
+
+
+<script src="home/section1.js"></script>
+<script src="openmusic/section2.js"></script>
+<script src="carpass/section3.js"></script>
+<script src="utmsports/section4.js"></script>
+<script src="particles/particlesthree.js"></script>
+<script src="modal/modal.js"></script>
+
+</html>

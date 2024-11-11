@@ -1,0 +1,49 @@
+:root {
+    --text-size-title: 4.4rem;
+    --text-size-tile-title: 2.5rem;
+    --text-size-tile-p: 1.25rem;
+
+    --text-size-overlay: 1.1rem;
+    --text-size-b: 0.8rem;
+
+    --image-button-size: 3.2rem;
+}
+
+@media (max-width: 800px) {
+    :root {
+        --text-size-title: 2rem;
+        --text-size-tile-title: 1.4rem;
+        --text-size-tile-p: 0.7rem;
+
+        --text-size-overlay: 0.7rem;
+        --text-size-b: 0.6rem;
+
+        --image-button-size: 2.2rem;
+    }
+}
+
+@media (min-width: 800px) {
+    :root {
+        --text-size-title: 3rem;
+        --text-size-tile-title: 2rem;
+        --text-size-tile-p: 1rem;
+
+        --text-size-overlay: 0.9rem;
+        --text-size-b: 0.7rem;
+
+        --image-button-size: 2.8rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    :root {
+        --text-size-title: 4.4rem;
+        --text-size-tile-title: 2.5rem;
+        --text-size-tile-p: 1.25rem;
+
+        --text-size-overlay: 1.1rem;
+        --text-size-b: 0.8rem;
+
+        --image-button-size: 3.2rem;
+    }
+}

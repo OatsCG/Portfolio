@@ -1,0 +1,142 @@
+.show-info-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.1); /* Light grey with transparency */
+    color: #ffffff; /* White text */
+    font-size: var(--text-size-b); /* Smaller font size */
+    font-weight: bold;
+    padding: 8px 14px 8px 8px; /* Smaller padding */
+    border: none;
+    border-radius: 20px; /* Capsule shape */
+    cursor: pointer;
+    z-index: 100;
+    pointer-events: all;
+    backdrop-filter: blur(8px); /* Blurred background */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    transition: background-color 0.3s ease;
+}
+/* Hover Effect */
+.show-info-button:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Slightly lighter background */
+}
+
+/* Modal Overlay with Fixed Blur for Surrounding */
+.modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0); /* Start fully transparent */
+    backdrop-filter: blur(4px); /* Light blur effect for background */
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    pointer-events: all;
+    transition: background 0.3s ease, backdrop-filter 0.3s ease; /* Smooth transition */
+}
+
+/* Modal Content with Stronger Blur */
+.modal-content {
+    background-color: rgba(240, 240, 255, 0.1); /* Light, frosted-glass effect */
+    color: #ffffff; /* White text */
+    padding: 20px;
+    border-radius: 15px;
+    max-width: 500px;
+    width: 80%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px); /* Stronger blur effect for the modal box */
+    text-align: center;
+    z-index: 101;
+    pointer-events: auto;
+    opacity: 0;
+    transform: scale(0.8);
+    animation: fadeInScale 0.3s ease forwards;
+}
+
+
+
+/* Darken animation for the overlay background */
+@keyframes darkenBackground {
+    from {
+        background: rgba(0, 0, 0, 0); /* Start fully transparent */
+    }
+    to {
+        background: rgba(0, 0, 0, 0.7); /* End with a dark overlay */
+    }
+}
+
+/* Fade and scale-in keyframes */
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Fade and scale-out keyframes for closing */
+@keyframes fadeOutScale {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+
+/* Header, Subheader, and Body Text Styling */
+.modal-header {
+    font-size: 1.8rem;
+    text-align: left; /* Right-aligned */
+    color: #fffffff0;
+}
+
+.modal-subheader {
+    display: flex;
+    justify-content: flex-start; /* Right-aligns icon and text together */
+    align-items: center;
+    margin-top: -0.7rem;
+    opacity: 0.7; /* Lower opacity */
+    padding-bottom: 10px;
+}
+
+.subheader-icon {
+    width: 1.5rem;
+    margin-right: 8px; /* Space between icon and text */
+}
+
+.subheader-text {
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+.modal-body {
+    color: #fffffff0;
+    font-size: 1rem;
+    text-align: left; /* Right-aligned */
+}
+
+
+
+
+/* Close Button on the Left */
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px; /* Move to the left corner */
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #ffffffbb;
+}
+
+
+

@@ -1,0 +1,125 @@
+/* SECTION 3 */
+.section-3 {
+    width: 100%;
+    height: 45rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    /* max-height: 100vh; */
+    padding: 20px;
+    z-index: 1;
+    position: relative;
+    overflow: hidden;
+    background-color: #0e0f1000;
+    font-family: "Poppins";
+    padding: 0;
+    padding-bottom: 2%;
+}
+
+.section-3-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: 3vw;
+    margin-right: 3vw;
+    margin-top: 1rem;
+    /* margin-bottom: 1rem; */
+    font-weight: 400;
+    font-size: var(--text-size-tile-p);
+    height: 18%;
+}
+
+.section-3-header-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: var(--text-size-title);
+    /* background: #f6e9ff; */
+    /* color: #111214; */
+    line-height: 1em;
+    max-height: 2em;
+    /* padding-bottom: 10px; */
+    align-self: flex-start;
+}
+
+.section-3-scroll-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 75%;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scroll-snap-align: center;
+    padding-left: 40vw;
+    /* Center the first cell */
+    padding-right: 40vw;
+    /* Center the last cell */
+}
+
+.section-3-cell {
+    width: 85rem;
+    max-width: 85vw;
+    height: 100%;
+    flex: 0 0 auto;
+    background-color: #22222466;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    scroll-snap-align: center;
+    overflow: hidden;
+}
+
+.section-3-cell p {
+    font-size: var(--text-size-tile-p);
+}
+
+.section-3-cell h1 {
+    font-size: var(--text-size-tile-title);
+    font-weight: 600;
+}
+
+.section-3-scroll-container::-webkit-scrollbar {
+    display: none;
+}
+
+.section-3-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    /* padding-bottom: 10px; */
+    height: 7%;
+}
+
+#prevArrow3,
+#nextArrow3 {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+#prevArrow3 img,
+#nextArrow3 img {
+    width: 28px;
+    /* Adjust size as needed */
+    height: 28px;
+}
+
+.section-3-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.section-3-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #555;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    cursor: pointer;
+}
+
+.section-3-dot.active {
+    background-color: #ffffff;
+}
