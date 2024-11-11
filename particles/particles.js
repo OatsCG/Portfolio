@@ -69,8 +69,7 @@ function resizeCanvas() {
             };
         })
     );
-
-    numParticles = Math.min(initialNumParticles, canvas.width * canvas.height / 50);
+    numParticles = Math.min(initialNumParticles, canvas.width * canvas.height / 2);
 }
 
 // Initialize particles array

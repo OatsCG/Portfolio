@@ -86,6 +86,16 @@
                 onclick="toggleAnimation()">
                 Toggle Particles
             </button>
+            <div style="display: flex; flex-direction: row; gap: 5px">
+                <button id="toggleanimation" style="z-index: 100; pointer-events: all;" class="toggle-canvas-button"
+                    onclick="remove10k()">
+                    -
+                </button>
+                <button id="toggleanimation" style="z-index: 100; pointer-events: all;" class="toggle-canvas-button"
+                    onclick="add10k()">
+                    +
+                </button>
+            </div>
         </div>
     </div>
 
@@ -437,7 +447,7 @@
                         UTM Sports.
                     </p>
                     <button class="show-info-button"
-                        onclick="openModal('Filter, Search, and Siri', 'Swift/SwiftUI, App Intents, JSON', 'TODO: Write this');">
+                        onclick="openModal('Filter, Search, and Siri', 'Swift/SwiftUI, App Intents, JSON', 'The schedule is pre-indexed in Swift by title, description, and location. App Intents drive Siri interactions with custom Shortcuts made in SwiftUI.');">
                         <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
                         <span class="button-text">Learn More</span>
                     </button>
@@ -486,7 +496,7 @@
                         database keep the app up-to-date.
                     </p>
                     <button class="show-info-button"
-                        onclick="openModal('Drop-Ins Schedule', 'Python, JSON', 'TODO: Write this');">
+                        onclick="openModal('Drop-Ins Schedule', 'Python, JSON, Git', 'The schedule is webscraped from UTM\'s slow, unoptimized public schedule. It\'s converted to JSON Format with metadata for custom symbols and sort categories. The JSON is stored on GitHub along with a version number.<br><br>When UTM Sports is launched, it checks the remote version number and updates its local schedule if needed. The schedule is stored for offline use.');">
                         <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
                         <span class="button-text">Learn More</span>
                     </button>

@@ -59,7 +59,7 @@ class CanvasFrontend {
 
             // Calculate opacity based on velocity magnitude
             float speed = length(velocity);
-            v_opacity = pow(speed / u_maxVelocity, 1.0);
+            v_opacity = pow((speed * 1.0) / u_maxVelocity, 1.5);
         }`;
 
         // Fragment Shader
@@ -234,17 +234,16 @@ let is_animation_enabled = true;
 const canvasFrontend = new CanvasFrontend('particleCanvas');
 
 // Parameters
-const initialNumParticles = 100000;
+let numParticles = 40000;
 const gridRows = 10;
 const gridCols = 10;
-const maxAngularVelocity = 0.01;
+const maxAngularVelocity = 0.02;
 const angularVelocityChangeFactor = 0.001;
 const frameInterval = 10;
 const maxVelocity = 5;
 const alignmentFactor = (0.029 * maxVelocity) ** 2;
-let randomAccelFactor = alignmentFactor / 7;
+let randomAccelFactor = 0;
 let cellWidth, cellHeight;
-let numParticles;
 
 // Color Definitions
 const colors = {
@@ -329,8 +328,8 @@ function resizeCanvas() {
     canvasFrontend.resizeCanvas();
     cellWidth = canvasFrontend.width / gridCols;
     cellHeight = canvasFrontend.height / gridRows;
-    numParticles = Math.min(initialNumParticles, canvasFrontend.width * canvasFrontend.height / 50);
-    console.log(numParticles)
+    // numParticles = Math.min(initialNumParticles, canvasFrontend.width * canvasFrontend.height / 10);
+    // console.log(numParticles)
 
     initializeDirectionModifiers();
     // initializeParticles();
@@ -369,6 +368,24 @@ function initializeParticles() {
     }));
 }
 
+function add10k() {
+    const additionalParticles = Array.from({ length: 20000 }, () => ({
+        x: Math.random() * canvasFrontend.width,
+        y: Math.random() * canvasFrontend.height,
+        vx: 0 * maxVelocity,
+        vy: 0 * maxVelocity,
+    }));
+
+    canvasFrontend.particles.push(...additionalParticles);
+}
+
+function remove10k() {
+    // Only remove particles if there are 20,000 or more
+    if (canvasFrontend.particles.length >= 30000) {
+        canvasFrontend.particles.splice(-20000, 20000);
+    }
+}
+
 // Helper Function: Color Transition
 function transitionColor(current, target, factor = 0.05) {
     return {
@@ -397,7 +414,7 @@ function setStraightMode() {
 
 function setFlowMode() {
     isFlowMode = true;
-    randomAccelFactor = alignmentFactor / 7;
+    randomAccelFactor = alignmentFactor / 15;
     targetColor = colors.flow;
     targetGlowColor = glowColors.flow;
 
@@ -406,7 +423,7 @@ function setFlowMode() {
 
 function setBlueFlowMode() {
     isFlowMode = true;
-    randomAccelFactor = alignmentFactor / 7;
+    randomAccelFactor = alignmentFactor / 15
     targetColor = colors.flow;
     targetGlowColor = glowColors.straight;
 
@@ -489,7 +506,7 @@ function animate() {
 
     // Glow Effect
     const glowColor = `rgb(${Math.floor(currentGlowColor.r)}, ${Math.floor(currentGlowColor.g)}, ${Math.floor(currentGlowColor.b)})`;
-    canvasFrontend.canvas.style.filter = `drop-shadow(0px 0px 50px ${glowColor}) drop-shadow(0px 0px 20px ${glowColor})`;
+    canvasFrontend.canvas.style.filter = `drop-shadow(0px 0px 50px ${glowColor}) drop-shadow(0px 0px 10px ${glowColor})`;
 
     // Mouse Velocity Decay
     if (Date.now() - lastMoveTime > 100) {
