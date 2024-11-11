@@ -228,9 +228,6 @@ class CanvasFrontend {
 
 
 
-
-
-
 let is_animation_enabled = true;
 
 // Create an instance of CanvasFrontend
@@ -251,17 +248,49 @@ let numParticles;
 
 // Color Definitions
 const colors = {
-    flow: { r: 255, g: 255, b: 255 },
-    straight: { r: 173, g: 216, b: 230 },
-    pointToCenter: { r: 139, g: 0, b: 0 },
-    wave: { r: 153, g: 73, b: 196 }
+    flow: {
+        r: 255,
+        g: 255,
+        b: 255
+    },
+    straight: {
+        r: 173,
+        g: 216,
+        b: 230
+    },
+    pointToCenter: {
+        r: 139,
+        g: 0,
+        b: 0
+    },
+    wave: {
+        r: 153,
+        g: 73,
+        b: 196
+    }
 };
 
 const glowColors = {
-    flow: { r: 255, g: 255, b: 255 },
-    straight: { r: 56, g: 90, b: 242 },
-    pointToCenter: { r: 255, g: 50, b: 50 },
-    wave: { r: 66, g: 123, b: 255 }
+    flow: {
+        r: 255,
+        g: 255,
+        b: 255
+    },
+    straight: {
+        r: 56,
+        g: 90,
+        b: 242
+    },
+    pointToCenter: {
+        r: 255,
+        g: 50,
+        b: 50
+    },
+    wave: {
+        r: 66,
+        g: 123,
+        b: 255
+    }
 };
 
 // Variables
@@ -269,14 +298,27 @@ let directionModifiers;
 let frameCounter = 0;
 let isFlowMode = true;
 let targetColor = colors.flow;
-let currentColor = { r: 255, g: 255, b: 255 };
+let currentColor = {
+    r: 255,
+    g: 255,
+    b: 255
+};
 let targetGlowColor = glowColors.flow;
-let currentGlowColor = { r: 255, g: 255, b: 255 };
+let currentGlowColor = {
+    r: 255,
+    g: 255,
+    b: 255
+};
 
 // Mouse Influence Variables
-let mouseX = 0, mouseY = 0;
-let prevPositions = [[0, 0], [0, 0]];
-let mouseVelocityX = 0, mouseVelocityY = 0;
+let mouseX = 0,
+    mouseY = 0;
+let prevPositions = [
+    [0, 0],
+    [0, 0]
+];
+let mouseVelocityX = 0,
+    mouseVelocityY = 0;
 const mouseInfluenceRadius = 100;
 const mouseInfluenceStrength = 0.01;
 const decayFactor = 0.9;
@@ -291,15 +333,19 @@ function resizeCanvas() {
     console.log(numParticles)
 
     initializeDirectionModifiers();
-    initializeParticles();
+    // initializeParticles();
 }
 
 window.addEventListener('resize', resizeCanvas);
 
 // Initialize Direction Modifiers
 function initializeDirectionModifiers() {
-    directionModifiers = Array.from({ length: gridRows }, () =>
-        Array.from({ length: gridCols }, () => {
+    directionModifiers = Array.from({
+            length: gridRows
+        }, () =>
+        Array.from({
+            length: gridCols
+        }, () => {
             const angle = Math.random() * 2 * Math.PI;
             return {
                 angle,
@@ -313,7 +359,9 @@ function initializeDirectionModifiers() {
 
 // Initialize Particles
 function initializeParticles() {
-    canvasFrontend.particles = Array.from({ length: numParticles }, () => ({
+    canvasFrontend.particles = Array.from({
+        length: numParticles
+    }, () => ({
         x: Math.random() * canvasFrontend.width,
         y: Math.random() * canvasFrontend.height,
         vx: (Math.random() - 0.5) * maxVelocity,
@@ -389,9 +437,9 @@ function setClockwiseCircleMode() {
 // Set "Wave" mode
 function setWaveMode() {
     isFlowMode = false;
-	randomAccelFactor = alignmentFactor * 2;
+    randomAccelFactor = alignmentFactor * 2;
     targetColor = colors.wave; // Pink
-	targetGlowColor = glowColors.wave;
+    targetGlowColor = glowColors.wave;
 
     const frequency = (2 * Math.PI * 3) / canvasFrontend.width; // 3 sine cycles across canvas width
     directionModifiers.forEach((row, rowIndex) => {
@@ -455,7 +503,10 @@ function animate() {
         const cellX = Math.min(Math.max(Math.floor(particle.x / cellWidth), 0), gridCols - 1);
         const cellY = Math.min(Math.max(Math.floor(particle.y / cellHeight), 0), gridRows - 1);
 
-        const { targetVx, targetVy } = directionModifiers[cellY][cellX];
+        const {
+            targetVx,
+            targetVy
+        } = directionModifiers[cellY][cellX];
         const dx = particle.x - (cellX + 0.5) * cellWidth;
         const dy = particle.y - (cellY + 0.5) * cellHeight;
         const distanceToCenterSquared = dx * dx + dy * dy;
@@ -521,4 +572,5 @@ function updateDirectionModifiers() {
 
 // Initialize and Start Animation
 resizeCanvas();
+initializeParticles();
 animate();
