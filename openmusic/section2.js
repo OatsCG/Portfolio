@@ -88,29 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
     animateTransform(openmusic_6, () => ((scrollContainer.offsetWidth - openmusic_6.getBoundingClientRect().width) / 2) - openmusic_6.getBoundingClientRect().x - 400, 0, 1.1, 0.0001, 'scale', true, true);
 
 
-});
-
-function animateProperty(targetElement, propertyGetter, inputValue, targetValue, speed, targetCssProperty, reverse = false, absolute = false, percented = false) {
-    function updateProperty() {
-        let difference = propertyGetter() - inputValue;
-        if (absolute) {
-            difference = Math.abs(difference);
-        }
-
-        // Calculate output based on difference, speed, and reverse flag
-        const outputValue = reverse ?
-            targetValue - difference * speed :
-            targetValue + difference * speed;
-
-        targetElement.style[targetCssProperty] = outputValue + (targetCssProperty === 'opacity' ? '' : (percented ? '%' : 'px'));
-
-        requestAnimationFrame(updateProperty);
-    }
-
-    updateProperty();
-
-
-
     // play button
     const video1 = document.getElementById('openmusic_4a');
     const video2 = document.getElementById('openmusic_4b');
@@ -127,6 +104,7 @@ function animateProperty(targetElement, propertyGetter, inputValue, targetValue,
 
     // Play or pause the video when the button is clicked
     playButton.addEventListener('click', () => {
+        console.log("asdasda")
         if (video1.paused) {
             video1.play();
             video2.play();
@@ -147,6 +125,26 @@ function animateProperty(targetElement, propertyGetter, inputValue, targetValue,
     video1.addEventListener('pause', updateButtonIcon);
     video2.addEventListener('play', updateButtonIcon);
     video2.addEventListener('pause', updateButtonIcon);
+});
+
+function animateProperty(targetElement, propertyGetter, inputValue, targetValue, speed, targetCssProperty, reverse = false, absolute = false, percented = false) {
+    function updateProperty() {
+        let difference = propertyGetter() - inputValue;
+        if (absolute) {
+            difference = Math.abs(difference);
+        }
+
+        // Calculate output based on difference, speed, and reverse flag
+        const outputValue = reverse ?
+            targetValue - difference * speed :
+            targetValue + difference * speed;
+
+        targetElement.style[targetCssProperty] = outputValue + (targetCssProperty === 'opacity' ? '' : (percented ? '%' : 'px'));
+
+        requestAnimationFrame(updateProperty);
+    }
+
+    updateProperty();
 }
 
 function animateTransform(targetElement, propertyGetter, inputValue, targetValue, speed, transformType, reverse = false, absolute = false) {

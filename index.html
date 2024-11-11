@@ -202,7 +202,7 @@
                         Automatically Import Apple Music or Spotify Playlists
                     </h1>
                     <img id="playButton" src="openmusic/playbutton.png" alt="Play Button"
-                        style="width: 45px; height: auto; cursor: pointer;">
+                        style="width: 45px; height: auto; cursor: pointer; z-index: 1; pointer-events: all;">
                 </div>
                 <div style="width: 20%; max-height: 95%; padding-right: 5%; padding-top: 3%; padding-bottom: 3%;">
                     <video id="openmusic_4b"
@@ -264,7 +264,7 @@
                         MusicBrainz)
                     </p>
                     <button class="show-info-button"
-                        onclick="openModal('Openmusic Database', 'PostgreSQL, Python', 'Webscraped from YouTube Music, it really is the largest publicly downloadable music database.<br><br>A Python script is run biweekly, and fetches all metadata in less than 3 days. No audio is downloaded, maintaining legality.');">
+                        onclick="openModal('Openmusic Database (OMDB)', 'PostgreSQL, Python', 'Webscraped from YouTube Music, it really is the largest publicly downloadable music database.<br><br>A Python script is run biweekly, and fetches all metadata in less than 3 days. No audio is downloaded, maintaining legality.<br><br>https:\/\/github.com/OatsCG/OMDB');">
                         <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
                         <span class="button-text">Learn More</span>
                     </button>
@@ -367,7 +367,7 @@
                         live-fetches content with industry standards.
                     </p>
                     <button class="show-info-button"
-                        onclick="openModal('CarPass API', 'Node.js, Python', 'TODO: WRITE THIS');">
+                        onclick="openModal('CarPass API', 'Node.js, Python, Push Notification Server', 'A Node.js server runs the app, occasionally running Python \'helper\' scripts for invites, recurring notifications, and cleanup.<br><br>Notifications are handled by a custom Push Notification script, maintaining confidentiality with users\' APN tokens.');">
                         <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
                         <span class="button-text">Learn More</span>
                     </button>
