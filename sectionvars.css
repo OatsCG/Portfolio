@@ -1,4 +1,6 @@
 :root {
+    --home-subtitle: 0.9rem;
+
     --text-size-title: 4.4rem;
     --text-size-tile-title: 2.5rem;
     --text-size-tile-p: 1.25rem;
@@ -11,19 +13,23 @@
 
 @media (max-width: 800px) {
     :root {
-        --text-size-title: 2rem;
-        --text-size-tile-title: 1.4rem;
-        --text-size-tile-p: 0.7rem;
+        --home-subtitle: 0.6rem;
 
-        --text-size-overlay: 0.7rem;
-        --text-size-b: 0.6rem;
+        --text-size-title: 1.7rem;
+        --text-size-tile-title: 1.1rem;
+        --text-size-tile-p: 0.6rem;
 
-        --image-button-size: 2.2rem;
+        --text-size-overlay: 0.6rem;
+        --text-size-b: 0.5rem;
+
+        --image-button-size: 2rem;
     }
 }
 
 @media (min-width: 800px) {
     :root {
+        --home-subtitle: 0.8rem;
+
         --text-size-title: 3rem;
         --text-size-tile-title: 2rem;
         --text-size-tile-p: 1rem;
@@ -37,6 +43,8 @@
 
 @media (min-width: 1200px) {
     :root {
+        --home-subtitle: 0.9rem;
+
         --text-size-title: 4.4rem;
         --text-size-tile-title: 2.5rem;
         --text-size-tile-p: 1.25rem;

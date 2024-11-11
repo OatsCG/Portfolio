@@ -38,7 +38,7 @@
 .right-section {
     display: flex;
     flex-direction: row;
-    gap: 20px;
+    gap: var(--text-size-tile-p);
 }
 
 .top-part {
