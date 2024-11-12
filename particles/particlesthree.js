@@ -496,6 +496,19 @@ function distanceToLineSegment(px, py, x1, y1, x2, y2) {
     return Math.sqrt((px - closestX) ** 2 + (py - closestY) ** 2);
 }
 
+function minDistanceToLineSegments(px, py, mouseX, mouseY, prevPositions) {
+    let minDistance = Infinity;
+
+    for (let i = 0; i < prevPositions.length; i++) {
+        const [x1, y1] = prevPositions[i];
+        const distance = distanceToLineSegment(px, py, x1, y1, mouseX, mouseY);
+        minDistance = Math.min(minDistance, distance);
+    }
+
+    return minDistance;
+}
+
+
 // Animation Loop
 function animate() {
     canvasFrontend.clearCanvas();
@@ -547,11 +560,8 @@ function animate() {
         // Apply mouse influence
         let distanceToMouseLine = 1000;
         if (prevPositions.length > 0) {
-            distanceToMouseLine = distanceToLineSegment(
-                particle.x, particle.y,
-                mouseX, mouseY,
-                prevPositions[0][0], prevPositions[0][1]
-            );
+            let minDistance = minDistanceToLineSegments(particle.x, particle.y, mouseX, mouseY, prevPositions);
+            distanceToMouseLine = minDistance
         }
 
         if (distanceToMouseLine < mouseInfluenceRadius) {
