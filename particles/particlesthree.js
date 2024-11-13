@@ -496,17 +496,25 @@ function distanceToLineSegment(px, py, x1, y1, x2, y2) {
     return Math.sqrt((px - closestX) ** 2 + (py - closestY) ** 2);
 }
 
-function minDistanceToLineSegments(px, py, mouseX, mouseY, prevPositions) {
+function minDistanceToLineSegments(px, py, prevPositions) {
+    if (prevPositions.length < 2) {
+        return null; // Not enough points to form a line segment
+    }
+
     let minDistance = Infinity;
 
-    for (let i = 0; i < prevPositions.length; i++) {
+    for (let i = 0; i < prevPositions.length - 1; i++) {
         const [x1, y1] = prevPositions[i];
-        const distance = distanceToLineSegment(px, py, x1, y1, mouseX, mouseY);
-        minDistance = Math.min(minDistance, distance);
+        const [x2, y2] = prevPositions[i + 1];
+        const distance = distanceToLineSegment(px, py, x1, y1, x2, y2);
+        if (distance < minDistance) {
+            minDistance = distance;
+        }
     }
 
     return minDistance;
 }
+
 
 
 // Animation Loop
@@ -560,7 +568,7 @@ function animate() {
         // Apply mouse influence
         let distanceToMouseLine = 1000;
         if (prevPositions.length > 0) {
-            let minDistance = minDistanceToLineSegments(particle.x, particle.y, mouseX, mouseY, prevPositions);
+            let minDistance = minDistanceToLineSegments(particle.x, particle.y, prevPositions);
             distanceToMouseLine = minDistance
         }
 
