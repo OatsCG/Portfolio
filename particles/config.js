@@ -30,12 +30,14 @@ window.colors = {
   flow: { r: 255, g: 255, b: 255 },
   straight: { r: 173, g: 216, b: 230 },
   pointToCenter: { r: 139, g: 0, b: 0 },
-  wave: { r: 153, g: 73, b: 196 }
+  wave: { r: 153, g: 73, b: 196 },
+  circle: { r: 173, g: 216, b: 230 },
 };
 
 window.glowColors = {
   flow: { r: 255, g: 255, b: 255 },
   straight: { r: 56, g: 90, b: 242 },
   pointToCenter: { r: 255, g: 50, b: 50 },
-  wave: { r: 66, g: 123, b: 255 }
+  wave: { r: 66, g: 123, b: 255 },
+  circle: { r: 56, g: 149, b: 242 },
 };

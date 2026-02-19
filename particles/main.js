@@ -34,8 +34,8 @@
     targetGlowColor: glowColors.flow,
     currentGlowColor: { r: 255, g: 255, b: 255 },
 
-    alignmentFactor: (0.029 * SIM.maxVelocity) ** 2,
-    randomAccelFactor: 0
+    alignmentFactor: (0.028 * SIM.maxVelocity) ** 2,
+    randomAccelFactor: 0.1
   };
 
   const maxVelocitySq = SIM.maxVelocity * SIM.maxVelocity;

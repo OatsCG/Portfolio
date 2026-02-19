@@ -1,7 +1,7 @@
 (function () {
   function setStraightMode(dir, state) {
     dir.isFlowMode = false;
-    state.randomAccelFactor = state.alignmentFactor * 2;
+    state.randomAccelFactor = state.alignmentFactor * 4;
     state.targetColor = colors.straight;
     state.targetGlowColor = glowColors.straight;
 
@@ -15,25 +15,60 @@
 
   function setFlowMode(dir, state) {
     dir.isFlowMode = true;
-    state.randomAccelFactor = state.alignmentFactor / 15;
+    state.randomAccelFactor = 0.1;
     state.targetColor = colors.flow;
     state.targetGlowColor = glowColors.flow;
     initializeDirectionField(dir);
   }
 
   function setBlueFlowMode(dir, state) {
-    dir.isFlowMode = true;
+    dir.isFlowMode = false;
     state.randomAccelFactor = state.alignmentFactor / 15;
     state.targetColor = colors.flow;
     state.targetGlowColor = glowColors.straight;
-    initializeDirectionField(dir);
+
+    const vTurn = SIM.maxVelocity * 0.7; // how strong the vertical "turn" is at row ends
+
+    for (let row = 0; row < SIM.gridRows; row++) {
+      const goRight = (row % 2 === 0);
+
+      for (let col = 0; col < SIM.gridCols; col++) {
+        const idx = row * SIM.gridCols + col;
+
+        // Default: straight horizontal flow
+        let vx = goRight ? SIM.maxVelocity : -SIM.maxVelocity;
+        let vy = 0;
+
+        // At the end of each row, add a vertical component so particles "turn the corner"
+        // This creates a serpentine path and prevents spiral-like capture.
+        const isRowEnd = goRight ? (col === SIM.gridCols - 1) : (col === 0);
+        if (isRowEnd) {
+          // Move downward until the last row, then move upward to keep motion circulating
+          const goDown = row < (SIM.gridRows - 1);
+          vy = goDown ? vTurn : vTurn;
+
+          // Keep some horizontal so it doesn't stall
+          vx *= 0.35;
+        }
+
+        // Normalize to max speed so every cell has comparable strength
+        const s = Math.sqrt(vx * vx + vy * vy) || 1;
+        vx = (vx / s) * SIM.maxVelocity;
+        vy = (vy / s) * SIM.maxVelocity;
+
+        dir.targetVx[idx] = vx;
+        dir.targetVy[idx] = vy;
+        dir.angVel[idx] = 0;
+        dir.angle[idx] = Math.atan2(vy, vx);
+      }
+    }
   }
 
   function setClockwiseCircleMode(dir, state, geom) {
     dir.isFlowMode = false;
-    state.randomAccelFactor = state.alignmentFactor / 7;
-    state.targetColor = colors.straight;
-    state.targetGlowColor = glowColors.straight;
+    state.randomAccelFactor = state.alignmentFactor * 2;
+    state.targetColor = colors.circle;
+    state.targetGlowColor = glowColors.circle;
 
     const centerX = geom.width * 0.5;
     const centerY = geom.height * 0.5;
