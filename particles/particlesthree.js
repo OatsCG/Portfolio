@@ -1,611 +1,730 @@
 /**
- * CanvasFrontend class
- * Manages WebGL2 rendering and particle data for a particle simulation.
- * Provides methods to clear and resize the canvas, add particles, and update
- * particle positions. Particle rendering is handled using WebGL2 shaders for efficiency.
+ * Optimized particle sim + WebGL2 frontend (with mouse-lag fix via cell-bucketing).
+ *
+ * Revisions included:
+ *  - Particles stored in one interleaved Float32Array: [x,y,vx,vy] * N
+ *  - gl.bufferSubData updates after one-time buffer allocation
+ *  - Mouse influence is ONLY computed for particles in grid cells near the mouse trail
+ *    (dramatically reduces work when mouse moves)
+ *  - add10k() / remove10k() added back (adds/removes 10,000 particles)
  */
+
 class CanvasFrontend {
-    /**
-     * Constructor - initializes the canvas and its WebGL2 context.
-     * Sets the canvas width and height to match the window size.
-     * Initializes an empty particle array and sets up WebGL2 shaders and buffers.
-     *
-     * @param {string} canvasId - The ID of the canvas element.
-     */
-    constructor(canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        this.gl = this.canvas.getContext('webgl2');
-
-        if (!this.gl) {
-            console.error('WebGL2 not supported by your browser.');
-            return;
-        }
-
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
-
-        // Particles Array
-        this.particles = [];
-        this.particleData = new Float32Array(0); // Combined buffer for position and velocity
-
-        this.initGL();
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.gl = this.canvas.getContext("webgl2");
+    if (!this.gl) {
+      console.error("WebGL2 not supported by your browser.");
+      return;
     }
 
-    /**
-     * Initializes WebGL2 shaders, program, and buffers.
-     * Sets up the vertex and fragment shaders and prepares attribute buffers.
-     */
-    initGL() {
-        // Vertex Shader
-        this.vertexShaderSource = `#version 300 es
-        precision mediump float;
-        in vec4 a_particleData; // x, y, vx, vy in a single attribute
-        uniform vec2 u_resolution;
-        uniform float u_maxVelocity;
-        out float v_opacity;
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
 
-        void main() {
-            vec2 position = a_particleData.xy;
-            vec2 velocity = a_particleData.zw;
+    this.count = 0;
+    this.particleData = new Float32Array(0);
 
-            // Convert to clip space
-            vec2 zeroToOne = position / u_resolution;
-            vec2 zeroToTwo = zeroToOne * 2.0;
-            vec2 clipSpace = zeroToTwo - 1.0;
-            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-            gl_PointSize = 1.0;
+    this.initGL();
+    this.resizeCanvas();
+  }
 
-            // Calculate opacity based on velocity magnitude
-            float speed = length(velocity);
-            v_opacity = pow((speed * 1.0) / u_maxVelocity, 1.5);
-        }`;
+  initGL() {
+    const gl = this.gl;
 
-        // Fragment Shader
-        this.fragmentShaderSource = `#version 300 es
-        precision mediump float;
-        uniform vec3 u_color;
-        in float v_opacity;
-        out vec4 outColor;
+    const vertexShaderSource = `#version 300 es
+      precision mediump float;
+      in vec4 a_particleData; // x, y, vx, vy
+      uniform vec2 u_resolution;
+      uniform float u_maxVelocity;
+      out float v_opacity;
 
-        void main() {
-            outColor = vec4(u_color, v_opacity);
-        }`;
+      void main() {
+        vec2 position = a_particleData.xy;
+        vec2 velocity = a_particleData.zw;
 
-        // Compile shaders and link program
-        const vertexShader = this.compileShader(this.gl.VERTEX_SHADER, this.vertexShaderSource);
-        const fragmentShader = this.compileShader(this.gl.FRAGMENT_SHADER, this.fragmentShaderSource);
-        this.program = this.gl.createProgram();
-        this.gl.attachShader(this.program, vertexShader);
-        this.gl.attachShader(this.program, fragmentShader);
-        this.gl.linkProgram(this.program);
+        vec2 zeroToOne = position / u_resolution;
+        vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+        gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+        gl_PointSize = 1.0;
 
-        if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
-            console.error('Could not link WebGL program', this.gl.getProgramInfoLog(this.program));
-            return;
-        }
+        float speed = length(velocity);
+        v_opacity = pow(speed / u_maxVelocity, 1.0);
+      }`;
 
-        // Use program
-        this.gl.useProgram(this.program);
+    const fragmentShaderSource = `#version 300 es
+      precision mediump float;
+      uniform vec3 u_color;
+      in float v_opacity;
+      out vec4 outColor;
 
-        // Create and bind a single particle data buffer
-        this.particleBuffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particleBuffer);
+      void main() {
+        outColor = vec4(u_color, v_opacity + 0.1);
+      }`;
 
-        // Enable particle data attribute
-        this.particleDataLocation = this.gl.getAttribLocation(this.program, 'a_particleData');
-        this.gl.vertexAttribPointer(this.particleDataLocation, 4, this.gl.FLOAT, false, 0, 0);
-        this.gl.enableVertexAttribArray(this.particleDataLocation);
+    const vs = this.compileShader(gl.VERTEX_SHADER, vertexShaderSource);
+    const fs = this.compileShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
 
-        // Get uniform locations
-        this.colorUniformLocation = this.gl.getUniformLocation(this.program, 'u_color');
-        this.maxVelocityUniformLocation = this.gl.getUniformLocation(this.program, 'u_maxVelocity');
-        this.resolutionUniformLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
+    this.program = gl.createProgram();
+    gl.attachShader(this.program, vs);
+    gl.attachShader(this.program, fs);
+    gl.linkProgram(this.program);
 
-        // Set uniforms that don't change every frame
-        this.gl.uniform2f(this.resolutionUniformLocation, this.width, this.height);
-
-        // Enable blending and set blend function
-        this.gl.enable(this.gl.BLEND);
-        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
-
-        // Set the clear color
-        this.gl.clearColor(0, 0, 0, 0);
+    if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
+      console.error("Could not link WebGL program", gl.getProgramInfoLog(this.program));
+      return;
     }
 
-    /**
-     * Compiles a WebGL shader from the given source code.
-     *
-     * @param {number} type - The type of shader (vertex or fragment).
-     * @param {string} source - The GLSL source code of the shader.
-     * @returns {WebGLShader} The compiled shader.
-     */
-    compileShader(type, source) {
-        const shader = this.gl.createShader(type);
-        this.gl.shaderSource(shader, source);
-        this.gl.compileShader(shader);
+    gl.useProgram(this.program);
 
-        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            console.error('Shader compile failed with:', this.gl.getShaderInfoLog(shader));
-            this.gl.deleteShader(shader);
-            return null;
-        }
-        return shader;
+    this.particleBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);
+
+    this.particleDataLocation = gl.getAttribLocation(this.program, "a_particleData");
+    gl.enableVertexAttribArray(this.particleDataLocation);
+    gl.vertexAttribPointer(this.particleDataLocation, 4, gl.FLOAT, false, 16, 0);
+
+    this.colorUniformLocation = gl.getUniformLocation(this.program, "u_color");
+    this.maxVelocityUniformLocation = gl.getUniformLocation(this.program, "u_maxVelocity");
+    this.resolutionUniformLocation = gl.getUniformLocation(this.program, "u_resolution");
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+    gl.clearColor(0, 0, 0, 0);
+  }
+
+  compileShader(type, source) {
+    const gl = this.gl;
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.error("Shader compile failed with:", gl.getShaderInfoLog(shader));
+      gl.deleteShader(shader);
+      return null;
     }
+    return shader;
+  }
 
-    /**
-     * Clears the entire canvas by resetting its content.
-     * Typically called at the start of each frame to prepare for new drawings.
-     */
-    clearCanvas() {
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    }
+  clearCanvas() {
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  }
 
-    /**
-     * Resizes the canvas to match the window dimensions.
-     * Also updates the canvas width, height properties, and the WebGL viewport.
-     * Should be called when the window resizes.
-     */
-    resizeCanvas() {
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
+  resizeCanvas() {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
 
-        this.gl.viewport(0, 0, this.width, this.height);
-        this.gl.uniform2f(this.resolutionUniformLocation, this.width, this.height);
-    }
+    const gl = this.gl;
+    gl.viewport(0, 0, this.width, this.height);
+    gl.useProgram(this.program);
+    gl.uniform2f(this.resolutionUniformLocation, this.width, this.height);
+  }
 
-    /**
-     * Moves a particle to a new position.
-     * Used for updating particle positions after external movement calculations.
-     *
-     * @param {number} index - The index of the particle in the particles array.
-     * @param {number} x - The new x-coordinate of the particle.
-     * @param {number} y - The new y-coordinate of the particle.
-     */
-    moveParticle(index, x, y) {
-        this.particles[index].x = x;
-        this.particles[index].y = y;
-    }
+  setParticleCount(n) {
+    this.count = n | 0;
+    this.particleData = new Float32Array(this.count * 4);
 
-    /**
-     * Adds a new particle to the particles array.
-     * Each particle should be an object with x, y, vx, and vy properties.
-     *
-     * @param {Object} particle - The particle to add, containing x, y, vx, and vy properties.
-     */
-    addParticle(particle) {
-        this.particles.push(particle);
-    }
+    const gl = this.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.particleData.byteLength, gl.DYNAMIC_DRAW);
+  }
 
-    /**
-     * Renders all particles to the canvas using WebGL2 shaders.
-     * Should be called once all particle positions and velocities have been updated for a frame.
-     * Updates buffers based on the current particle positions and velocities.
-     *
-     * @param {Object} color - The RGB color object to apply to each particle, with r, g, and b properties.
-     * @param {number} maxVelocity - The maximum velocity to calculate particle opacity.
-     */
-    render(color, maxVelocity) {
-        this.gl.useProgram(this.program);
+  resizeParticles(newCount) {
+    newCount |= 0;
+    if (newCount === this.count) return;
 
-        // Only set color and max velocity once per frame
-        this.gl.uniform3f(
-            this.colorUniformLocation,
-            color.r / 255,
-            color.g / 255,
-            color.b / 255
-        );
-        this.gl.uniform1f(this.maxVelocityUniformLocation, maxVelocity);
+    const newData = new Float32Array(newCount * 4);
+    const copyFloats = Math.min(this.count, newCount) * 4;
+    newData.set(this.particleData.subarray(0, copyFloats), 0);
 
-        // Resize particle data array if necessary
-        if (this.particleData.length !== this.particles.length * 4) {
-            this.particleData = new Float32Array(this.particles.length * 4);
-        }
+    this.count = newCount;
+    this.particleData = newData;
 
-        // Update particle data
-        for (let i = 0; i < this.particles.length; i++) {
-            const particle = this.particles[i];
-            const index = i * 4;
-            this.particleData[index] = particle.x;
-            this.particleData[index + 1] = particle.y;
-            this.particleData[index + 2] = particle.vx;
-            this.particleData[index + 3] = particle.vy;
-        }
+    const gl = this.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.particleData.byteLength, gl.DYNAMIC_DRAW);
+  }
 
-        // Update particle buffer data
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particleBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, this.particleData, this.gl.DYNAMIC_DRAW);
+  render(color, maxVelocity) {
+    const gl = this.gl;
+    gl.useProgram(this.program);
 
-        this.clearCanvas();
+    gl.uniform3f(
+      this.colorUniformLocation,
+      color.r / 255,
+      color.g / 255,
+      color.b / 255
+    );
+    gl.uniform1f(this.maxVelocityUniformLocation, maxVelocity);
 
-        // Draw particles
-        this.gl.drawArrays(this.gl.POINTS, 0, this.particles.length);
-    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.particleData);
+
+    this.clearCanvas();
+    gl.drawArrays(gl.POINTS, 0, this.count);
+  }
 }
 
-
+/* ------------------------ Simulation Params ------------------------ */
 
 let is_animation_enabled = true;
+const canvasFrontend = new CanvasFrontend("particleCanvas");
 
-// Create an instance of CanvasFrontend
-const canvasFrontend = new CanvasFrontend('particleCanvas');
-
-// Parameters
 let numParticles = 40000;
+
 const gridRows = 10;
 const gridCols = 10;
+const cellCount = gridRows * gridCols;
+
 const maxAngularVelocity = 0.02;
 const angularVelocityChangeFactor = 0.001;
 const frameInterval = 10;
+
 const maxVelocity = 5;
+const maxVelocitySq = maxVelocity * maxVelocity;
+
 const alignmentFactor = (0.029 * maxVelocity) ** 2;
 let randomAccelFactor = 0;
-let cellWidth, cellHeight;
 
-// Color Definitions
+let cellWidth = 1, cellHeight = 1, invCellWidth = 1, invCellHeight = 1;
+
+/* ------------------------ Colors ------------------------ */
+
 const colors = {
-    flow: {
-        r: 255,
-        g: 255,
-        b: 255
-    },
-    straight: {
-        r: 173,
-        g: 216,
-        b: 230
-    },
-    pointToCenter: {
-        r: 139,
-        g: 0,
-        b: 0
-    },
-    wave: {
-        r: 153,
-        g: 73,
-        b: 196
-    }
+  flow: { r: 255, g: 255, b: 255 },
+  straight: { r: 173, g: 216, b: 230 },
+  pointToCenter: { r: 139, g: 0, b: 0 },
+  wave: { r: 153, g: 73, b: 196 }
 };
 
 const glowColors = {
-    flow: {
-        r: 255,
-        g: 255,
-        b: 255
-    },
-    straight: {
-        r: 56,
-        g: 90,
-        b: 242
-    },
-    pointToCenter: {
-        r: 255,
-        g: 50,
-        b: 50
-    },
-    wave: {
-        r: 66,
-        g: 123,
-        b: 255
-    }
+  flow: { r: 255, g: 255, b: 255 },
+  straight: { r: 56, g: 90, b: 242 },
+  pointToCenter: { r: 255, g: 50, b: 50 },
+  wave: { r: 66, g: 123, b: 255 }
 };
 
-// Variables
-let directionModifiers;
 let frameCounter = 0;
 let isFlowMode = true;
+
 let targetColor = colors.flow;
-let currentColor = {
-    r: 255,
-    g: 255,
-    b: 255
-};
+let currentColor = { r: 255, g: 255, b: 255 };
+
 let targetGlowColor = glowColors.flow;
-let currentGlowColor = {
-    r: 255,
-    g: 255,
-    b: 255
-};
+let currentGlowColor = { r: 255, g: 255, b: 255 };
 
-// Mouse Influence Variables
-let mouseX = 0,
-    mouseY = 0;
-let prevPositions = [
-    [0, 0],
-    [0, 0]
-];
-let mouseVelocityX = 0,
-    mouseVelocityY = 0;
-const mouseInfluenceRadius = 100;
-const mouseInfluenceStrength = 0.01;
-const decayFactor = 0.9;
-let lastMoveTime = Date.now();
-
-// Canvas Resize Handler
-function resizeCanvas() {
-    canvasFrontend.resizeCanvas();
-    cellWidth = canvasFrontend.width / gridCols;
-    cellHeight = canvasFrontend.height / gridRows;
-    // numParticles = Math.min(initialNumParticles, canvasFrontend.width * canvasFrontend.height / 10);
-    // console.log(numParticles)
-
-    initializeDirectionModifiers();
-    // initializeParticles();
+function transitionColor(current, target, factor = 0.05) {
+  return {
+    r: current.r + (target.r - current.r) * factor,
+    g: current.g + (target.g - current.g) * factor,
+    b: current.b + (target.b - current.b) * factor
+  };
 }
 
-window.addEventListener('resize', resizeCanvas);
+/* ------------------------ Direction Modifiers (Typed) ------------------------ */
 
-// Initialize Direction Modifiers
+let dir_angle = new Float32Array(cellCount);
+let dir_angVel = new Float32Array(cellCount);
+let dir_targetVx = new Float32Array(cellCount);
+let dir_targetVy = new Float32Array(cellCount);
+
 function initializeDirectionModifiers() {
-    directionModifiers = Array.from({
-            length: gridRows
-        }, () =>
-        Array.from({
-            length: gridCols
-        }, () => {
-            const angle = Math.random() * 2 * Math.PI;
-            return {
-                angle,
-                angularVelocity: (Math.random() - 0.5) * maxAngularVelocity,
-                targetVx: Math.cos(angle) * maxVelocity,
-                targetVy: Math.sin(angle) * maxVelocity
-            };
-        })
-    );
+  for (let i = 0; i < cellCount; i++) {
+    const angle = Math.random() * 2 * Math.PI;
+    const av = (Math.random() - 0.5) * maxAngularVelocity;
+    dir_angle[i] = angle;
+    dir_angVel[i] = av;
+    dir_targetVx[i] = Math.cos(angle) * maxVelocity;
+    dir_targetVy[i] = Math.sin(angle) * maxVelocity;
+  }
 }
 
-// Initialize Particles
+function updateDirectionModifiers() {
+  if (!isFlowMode) return;
+
+  for (let i = 0; i < cellCount; i++) {
+    let angle = dir_angle[i] + dir_angVel[i];
+    angle = (angle + 2 * Math.PI) % (2 * Math.PI);
+    dir_angle[i] = angle;
+
+    let av = dir_angVel[i] + (Math.random() - 0.5) * angularVelocityChangeFactor;
+    if (av > maxAngularVelocity) av = maxAngularVelocity;
+    else if (av < -maxAngularVelocity) av = -maxAngularVelocity;
+    dir_angVel[i] = av;
+
+    dir_targetVx[i] = Math.cos(angle) * maxVelocity;
+    dir_targetVy[i] = Math.sin(angle) * maxVelocity;
+  }
+}
+
+/* ------------------------ Particles (Typed) ------------------------ */
+
+let floatId = new Float32Array(0);
+
 function initializeParticles() {
-    canvasFrontend.particles = Array.from({
-        length: numParticles
-    }, () => ({
-        x: Math.random() * canvasFrontend.width,
-        y: Math.random() * canvasFrontend.height,
-        vx: (Math.random() - 0.5) * maxVelocity,
-        vy: (Math.random() - 0.5) * maxVelocity
-    }));
+  canvasFrontend.setParticleCount(numParticles);
+  floatId = new Float32Array(numParticles);
+
+  const data = canvasFrontend.particleData;
+  const w = canvasFrontend.width;
+  const h = canvasFrontend.height;
+
+  for (let i = 0, j = 0; i < numParticles; i++, j += 4) {
+    floatId[i] = Math.random() - 0.5;
+    data[j] = Math.random() * w;
+    data[j + 1] = Math.random() * h;
+    data[j + 2] = (Math.random() - 0.5) * maxVelocity;
+    data[j + 3] = (Math.random() - 0.5) * maxVelocity;
+  }
 }
 
 function add10k() {
-    const additionalParticles = Array.from({ length: 20000 }, () => ({
-        x: Math.random() * canvasFrontend.width,
-        y: Math.random() * canvasFrontend.height,
-        vx: 0 * maxVelocity,
-        vy: 0 * maxVelocity,
-    }));
+  const add = 10000;
+  const oldN = canvasFrontend.count;
+  const newN = oldN + add;
 
-    canvasFrontend.particles.push(...additionalParticles);
+  canvasFrontend.resizeParticles(newN);
+
+  const newFloat = new Float32Array(newN);
+  newFloat.set(floatId, 0);
+  floatId = newFloat;
+
+  const data = canvasFrontend.particleData;
+  const w = canvasFrontend.width;
+  const h = canvasFrontend.height;
+
+  for (let i = oldN, j = oldN * 4; i < newN; i++, j += 4) {
+    floatId[i] = Math.random() - 0.5;
+    data[j] = Math.random() * w;
+    data[j + 1] = Math.random() * h;
+    data[j + 2] = 0;
+    data[j + 3] = 0;
+  }
+
+  // If mouse cell-buckets are allocated (they are), no extra action needed.
 }
 
 function remove10k() {
-    // Only remove particles if there are 20,000 or more
-    if (canvasFrontend.particles.length >= 30000) {
-        canvasFrontend.particles.splice(-20000, 20000);
+  const remove = 10000;
+  const oldN = canvasFrontend.count;
+  if (oldN < 10000 + 1) return;
+
+  const newN = Math.max(0, oldN - remove);
+  canvasFrontend.resizeParticles(newN);
+  floatId = floatId.subarray(0, newN);
+}
+
+/* ------------------------ Mouse Influence (Optimized + Bucketing) ------------------------ */
+
+let prevPositions = [];
+let mouseVelocityX = 0, mouseVelocityY = 0;
+
+const mouseInfluenceRadius = 100;
+const mouseInfluenceRadiusSq = mouseInfluenceRadius * mouseInfluenceRadius;
+const mouseInfluenceStrength = 0.11;
+
+const decayFactor = 0.9;
+let lastMoveTime = performance.now();
+let mouseActive = false;
+
+// Cell bucketing structures
+const cellParticleIndices = Array.from({ length: cellCount }, () => []);
+let cellsTouched = new Uint8Array(cellCount);          // 0/1 flags for touched cells
+let touchedList = new Int32Array(cellCount);           // list of touched cell indices
+let touchedCount = 0;
+
+// Clear only the touched flags; also clear buckets each time mouse active.
+function clearCellBuckets() {
+  for (let i = 0; i < touchedCount; i++) {
+    cellsTouched[touchedList[i]] = 0;
+  }
+  touchedCount = 0;
+
+  for (let i = 0; i < cellCount; i++) {
+    cellParticleIndices[i].length = 0;
+  }
+}
+
+function bucketParticles() {
+  const data = canvasFrontend.particleData;
+  const N = canvasFrontend.count;
+
+  for (let i = 0, j = 0; i < N; i++, j += 4) {
+    const x = data[j], y = data[j + 1];
+    let cx = (x * invCellWidth) | 0;
+    let cy = (y * invCellHeight) | 0;
+
+    if (cx < 0) cx = 0; else if (cx >= gridCols) cx = gridCols - 1;
+    if (cy < 0) cy = 0; else if (cy >= gridRows) cy = gridRows - 1;
+
+    cellParticleIndices[cy * gridCols + cx].push(i);
+  }
+}
+
+// Cheap cell marking: bounding box of mouse polyline expanded by radius.
+function markTouchedCellsFromMouse() {
+  const n = prevPositions.length;
+  if (n < 1) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let i = 0; i < n; i++) {
+    const p = prevPositions[i];
+    const x = p[0], y = p[1];
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  }
+
+  minX -= mouseInfluenceRadius; minY -= mouseInfluenceRadius;
+  maxX += mouseInfluenceRadius; maxY += mouseInfluenceRadius;
+
+  let c0 = (minX * invCellWidth) | 0;
+  let r0 = (minY * invCellHeight) | 0;
+  let c1 = (maxX * invCellWidth) | 0;
+  let r1 = (maxY * invCellHeight) | 0;
+
+  if (c0 < 0) c0 = 0;
+  if (r0 < 0) r0 = 0;
+  if (c1 >= gridCols) c1 = gridCols - 1;
+  if (r1 >= gridRows) r1 = gridRows - 1;
+
+  for (let r = r0; r <= r1; r++) {
+    const base = r * gridCols;
+    for (let c = c0; c <= c1; c++) {
+      const idx = base + c;
+      if (!cellsTouched[idx]) {
+        cellsTouched[idx] = 1;
+        touchedList[touchedCount++] = idx;
+      }
     }
+  }
 }
 
-// Helper Function: Color Transition
-function transitionColor(current, target, factor = 0.05) {
-    return {
-        r: current.r + (target.r - current.r) * factor,
-        g: current.g + (target.g - current.g) * factor,
-        b: current.b + (target.b - current.b) * factor
-    };
+// Squared distance point->segment (no sqrt)
+function distancePointToSegmentSq(px, py, ax, ay, bx, by) {
+  const abx = bx - ax;
+  const aby = by - ay;
+  const apx = px - ax;
+  const apy = py - ay;
+
+  const abLenSq = abx * abx + aby * aby;
+  if (abLenSq === 0) return apx * apx + apy * apy;
+
+  let t = (apx * abx + apy * aby) / abLenSq;
+  if (t < 0) t = 0;
+  else if (t > 1) t = 1;
+
+  const cx = ax + t * abx;
+  const cy = ay + t * aby;
+  const dx = px - cx;
+  const dy = py - cy;
+  return dx * dx + dy * dy;
 }
 
-// Mode Setting Functions
+function minDistanceToPolylineSq(px, py, pts) {
+  const n = pts.length;
+  if (n < 2) return Infinity;
+  let minSq = Infinity;
+  for (let i = 0; i < n - 1; i++) {
+    const a = pts[i], b = pts[i + 1];
+    const d2 = distancePointToSegmentSq(px, py, a[0], a[1], b[0], b[1]);
+    if (d2 < minSq) minSq = d2;
+  }
+  return minSq;
+}
+
+canvasFrontend.canvas.addEventListener("mousemove", (event) => {
+  const x = event.clientX;
+  const y = event.clientY;
+
+  prevPositions.push([x, y]);
+  if (prevPositions.length > 5) prevPositions.shift();
+
+  const oldest = prevPositions[0];
+  mouseVelocityX = x - oldest[0];
+  mouseVelocityY = y - oldest[1];
+
+  lastMoveTime = performance.now();
+  mouseActive = true;
+});
+
+/* ------------------------ Resize ------------------------ */
+
+function resizeCanvas() {
+  canvasFrontend.resizeCanvas();
+  cellWidth = canvasFrontend.width / gridCols;
+  cellHeight = canvasFrontend.height / gridRows;
+  invCellWidth = 1 / cellWidth;
+  invCellHeight = 1 / cellHeight;
+
+  initializeDirectionModifiers();
+}
+
+window.addEventListener("resize", resizeCanvas);
+
+/* ------------------------ Modes ------------------------ */
+
 function setStraightMode() {
-    isFlowMode = false;
-    randomAccelFactor = alignmentFactor * 2;
-    targetColor = colors.straight;
-    targetGlowColor = glowColors.straight;
+  isFlowMode = false;
+  randomAccelFactor = alignmentFactor * 2;
+  targetColor = colors.straight;
+  targetGlowColor = glowColors.straight;
 
-    directionModifiers.forEach(row => {
-        row.forEach(cell => {
-            cell.angle = Math.PI;
-            cell.angularVelocity = 0;
-            cell.targetVx = -maxVelocity;
-            cell.targetVy = 0;
-        });
-    });
+  for (let i = 0; i < cellCount; i++) {
+    dir_angle[i] = Math.PI;
+    dir_angVel[i] = 0;
+    dir_targetVx[i] = -maxVelocity;
+    dir_targetVy[i] = 0;
+  }
 }
 
 function setFlowMode() {
-    isFlowMode = true;
-    randomAccelFactor = alignmentFactor / 15;
-    targetColor = colors.flow;
-    targetGlowColor = glowColors.flow;
-
-    initializeDirectionModifiers();
+  isFlowMode = true;
+  randomAccelFactor = alignmentFactor / 15;
+  targetColor = colors.flow;
+  targetGlowColor = glowColors.flow;
+  initializeDirectionModifiers();
 }
 
 function setBlueFlowMode() {
-    isFlowMode = true;
-    randomAccelFactor = alignmentFactor / 15
-    targetColor = colors.flow;
-    targetGlowColor = glowColors.straight;
-
-    initializeDirectionModifiers();
+  isFlowMode = true;
+  randomAccelFactor = alignmentFactor / 15;
+  targetColor = colors.flow;
+  targetGlowColor = glowColors.straight;
+  initializeDirectionModifiers();
 }
 
 function setClockwiseCircleMode() {
-    isFlowMode = false;
-    randomAccelFactor = alignmentFactor / 7;
-    targetColor = colors.straight;
-    targetGlowColor = glowColors.straight;
+  isFlowMode = false;
+  randomAccelFactor = alignmentFactor / 7;
+  targetColor = colors.straight;
+  targetGlowColor = glowColors.straight;
 
-    const centerX = canvasFrontend.width / 2;
-    const centerY = canvasFrontend.height / 2;
+  const centerX = canvasFrontend.width * 0.5;
+  const centerY = canvasFrontend.height * 0.5;
 
-    directionModifiers.forEach((row, rowIndex) => {
-        row.forEach((cell, colIndex) => {
-            const dx = (colIndex + 0.5) * cellWidth - centerX;
-            const dy = (rowIndex + 0.5) * cellHeight - centerY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            cell.targetVx = (dy / distance) * maxVelocity;
-            cell.targetVy = -(dx / distance) * maxVelocity;
-            cell.angularVelocity = 0;
-        });
-    });
+  for (let row = 0; row < gridRows; row++) {
+    for (let col = 0; col < gridCols; col++) {
+      const idx = row * gridCols + col;
+
+      const cellCenterX = (col + 0.5) * cellWidth;
+      const cellCenterY = (row + 0.5) * cellHeight;
+
+      const dx = cellCenterX - centerX;
+      const dy = cellCenterY - centerY;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+      dir_targetVx[idx] = (dy / dist) * maxVelocity;
+      dir_targetVy[idx] = -(dx / dist) * maxVelocity;
+      dir_angVel[idx] = 0;
+    }
+  }
 }
 
-// Set "Wave" mode
 function setWaveMode() {
-    isFlowMode = false;
-    randomAccelFactor = alignmentFactor * 2;
-    targetColor = colors.wave; // Pink
-    targetGlowColor = glowColors.wave;
+  isFlowMode = false;
+  randomAccelFactor = alignmentFactor * 2;
+  targetColor = colors.wave;
+  targetGlowColor = glowColors.wave;
 
-    const frequency = (2 * Math.PI * 3) / canvasFrontend.width; // 3 sine cycles across canvas width
-    directionModifiers.forEach((row, rowIndex) => {
-        const phaseShift = Math.random() * Math.PI; // Random phase shift per row
-        row.forEach((cell, colIndex) => {
-            const cellCenterX = (colIndex + 0.5) * cellWidth;
-            const angle = Math.sin(frequency * cellCenterX + phaseShift);
-            cell.targetVx = Math.cos(angle) * maxVelocity;
-            cell.targetVy = Math.sin(angle) * maxVelocity * 1.5;
-            cell.angularVelocity = 0;
-        });
-    });
-}
+  const frequency = (2 * Math.PI * 3) / canvasFrontend.width;
 
-// Mousemove Event Listener
-canvasFrontend.canvas.addEventListener('mousemove', (event) => {
-    mouseX = event.clientX;
-    mouseY = event.clientY;
-    prevPositions.push([mouseX, mouseY]);
+  for (let row = 0; row < gridRows; row++) {
+    const phaseShift = Math.random() * Math.PI;
+    for (let col = 0; col < gridCols; col++) {
+      const idx = row * gridCols + col;
+      const cellCenterX = (col + 0.5) * cellWidth;
+      const angle = Math.sin(frequency * cellCenterX + phaseShift);
 
-    if (prevPositions.length > 5) prevPositions.shift();
-    mouseVelocityX = mouseX - prevPositions[0][0];
-    mouseVelocityY = mouseY - prevPositions[0][1];
-    lastMoveTime = Date.now();
-});
-
-// Calculate Distance from Point to Line Segment
-function distanceToLineSegment(px, py, x1, y1, x2, y2) {
-    const lineLenSquared = (x2 - x1) ** 2 + (y2 - y1) ** 2;
-    if (lineLenSquared === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
-
-    let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / lineLenSquared;
-    t = Math.max(0, Math.min(1, t));
-
-    const closestX = x1 + t * (x2 - x1);
-    const closestY = y1 + t * (y2 - y1);
-    return Math.sqrt((px - closestX) ** 2 + (py - closestY) ** 2);
-}
-
-function minDistanceToLineSegments(px, py, prevPositions) {
-    if (prevPositions.length < 2) {
-        return null; // Not enough points to form a line segment
+      dir_targetVx[idx] = Math.cos(angle) * maxVelocity;
+      dir_targetVy[idx] = Math.sin(angle) * maxVelocity * 1.5;
+      dir_angVel[idx] = 0;
     }
-
-    let minDistance = Infinity;
-
-    for (let i = 0; i < prevPositions.length - 1; i++) {
-        const [x1, y1] = prevPositions[i];
-        const [x2, y2] = prevPositions[i + 1];
-        const distance = distanceToLineSegment(px, py, x1, y1, x2, y2);
-        if (distance < minDistance) {
-            minDistance = distance;
-        }
-    }
-
-    return minDistance;
+  }
 }
 
+/* ------------------------ Animation Loop ------------------------ */
 
-
-// Animation Loop
 function animate() {
-    canvasFrontend.clearCanvas();
+  // Color transitions
+  currentColor = transitionColor(currentColor, targetColor);
+  currentGlowColor = transitionColor(currentGlowColor, targetGlowColor);
 
-    // Update Colors
-    currentColor = transitionColor(currentColor, targetColor);
-    currentGlowColor = transitionColor(currentGlowColor, targetGlowColor);
+  // Optional perf tweak: update filter less often if needed (uncomment)
+  // if ((frameCounter & 3) === 0) {
+  const glowColor = `rgb(${currentGlowColor.r | 0}, ${currentGlowColor.g | 0}, ${currentGlowColor.b | 0})`;
+  canvasFrontend.canvas.style.filter =
+    `drop-shadow(0px 0px 50px ${glowColor}) drop-shadow(0px 0px 10px ${glowColor})`;
+  // }
 
-    // Glow Effect
-    const glowColor = `rgb(${Math.floor(currentGlowColor.r)}, ${Math.floor(currentGlowColor.g)}, ${Math.floor(currentGlowColor.b)})`;
-    canvasFrontend.canvas.style.filter = `drop-shadow(0px 0px 50px ${glowColor}) drop-shadow(0px 0px 10px ${glowColor})`;
+  // Mouse decay + activity gate
+  const now = performance.now();
+  if (mouseActive && now - lastMoveTime > 10) {
+    mouseVelocityX *= decayFactor;
+    mouseVelocityY *= decayFactor;
 
-    // Mouse Velocity Decay
-    if (Date.now() - lastMoveTime > 100) {
-        mouseVelocityX *= decayFactor;
-        mouseVelocityY *= decayFactor;
-        if (Math.abs(mouseVelocityX) <= 0.01 && Math.abs(mouseVelocityY) <= 0.01) prevPositions = [];
+    if ((mouseVelocityX * mouseVelocityX + mouseVelocityY * mouseVelocityY) < 0.0001) {
+      mouseVelocityX = 0;
+      mouseVelocityY = 0;
+      prevPositions.length = 0;
+      mouseActive = false;
+    }
+  }
+
+  const data = canvasFrontend.particleData;
+  const N = canvasFrontend.count;
+  const w = canvasFrontend.width;
+  const h = canvasFrontend.height;
+
+  const mouseVx = mouseVelocityX;
+  const mouseVy = mouseVelocityY;
+
+  const doMouse =
+    mouseActive &&
+    prevPositions.length >= 2 &&
+    (mouseVx !== 0 || mouseVy !== 0);
+
+  // Build cell buckets + touched list ONLY when mouse is active
+  if (doMouse) {
+    clearCellBuckets();
+    bucketParticles();
+    markTouchedCellsFromMouse();
+  }
+
+  const halfCellW = cellWidth * 0.5;
+  const halfCellH = cellHeight * 0.5;
+  const maxDistSq = halfCellW * halfCellW + halfCellH * halfCellH;
+
+  // Main particle update (no per-particle mouse distance here)
+  for (let i = 0, j = 0; i < N; i++, j += 4) {
+    let x = data[j];
+    let y = data[j + 1];
+    let vx = data[j + 2];
+    let vy = data[j + 3];
+
+    let cellX = (x * invCellWidth) | 0;
+    let cellY = (y * invCellHeight) | 0;
+
+    if (cellX < 0) cellX = 0;
+    else if (cellX >= gridCols) cellX = gridCols - 1;
+    if (cellY < 0) cellY = 0;
+    else if (cellY >= gridRows) cellY = gridRows - 1;
+
+    const idx = cellY * gridCols + cellX;
+
+    const targetVx = dir_targetVx[idx];
+    const targetVy = dir_targetVy[idx];
+
+    const cx = cellX * cellWidth + halfCellW;
+    const cy = cellY * cellHeight + halfCellH;
+
+    const dx = x - cx;
+    const dy = y - cy;
+    const distCenterSq = dx * dx + dy * dy;
+
+    let t = 1 - (distCenterSq / maxDistSq);
+    if (t < 0) t = 0;
+    const influenceFactor = t * t;
+    const adjAlignFactor = alignmentFactor * influenceFactor;
+
+    const fid = floatId[i];
+
+    vx += (targetVx - vx) * adjAlignFactor + fid * 0.03;
+    vy += (targetVy - vy) * adjAlignFactor + fid * 0.03;
+
+    vx += (Math.random() - 0.5) * randomAccelFactor;
+    vy += (Math.random() - 0.5) * randomAccelFactor;
+
+    const sp2 = vx * vx + vy * vy;
+    if (sp2 > maxVelocitySq) {
+      const inv = maxVelocity / Math.sqrt(sp2);
+      vx *= inv;
+      vy *= inv;
     }
 
-    // Update Particles
-    canvasFrontend.particles.forEach((particle, index) => {
-        const cellX = Math.min(Math.max(Math.floor(particle.x / cellWidth), 0), gridCols - 1);
-        const cellY = Math.min(Math.max(Math.floor(particle.y / cellHeight), 0), gridRows - 1);
+    x += vx;
+    y += vy;
 
-        const {
-            targetVx,
-            targetVy
-        } = directionModifiers[cellY][cellX];
-        const dx = particle.x - (cellX + 0.5) * cellWidth;
-        const dy = particle.y - (cellY + 0.5) * cellHeight;
-        const distanceToCenterSquared = dx * dx + dy * dy;
-        const maxDistanceSquared = (cellWidth / 2) ** 2 + (cellHeight / 2) ** 2;
-        const influenceFactor = Math.pow(Math.max(0, 1 - distanceToCenterSquared / maxDistanceSquared), 2);
-        const adjAlignFactor = alignmentFactor * influenceFactor;
+    if (x < 0) x += w;
+    else if (x >= w) x -= w;
+    if (y < 0) y += h;
+    else if (y >= h) y -= h;
 
-        particle.vx += (targetVx - particle.vx) * adjAlignFactor;
-        particle.vy += (targetVy - particle.vy) * adjAlignFactor;
+    data[j] = x;
+    data[j + 1] = y;
+    data[j + 2] = vx;
+    data[j + 3] = vy;
+  }
 
-        particle.vx += (Math.random() - 0.5) * randomAccelFactor;
-        particle.vy += (Math.random() - 0.5) * randomAccelFactor;
+  // Apply mouse influence ONLY to particles in touched cells
+  if (doMouse && touchedCount > 0) {
+    for (let ti = 0; ti < touchedCount; ti++) {
+      const cellIdx = touchedList[ti];
+      const arr = cellParticleIndices[cellIdx];
 
-        const speed = Math.sqrt(particle.vx ** 2 + particle.vy ** 2);
-        if (speed > maxVelocity) {
-            const scale = maxVelocity / speed;
-            particle.vx *= scale;
-            particle.vy *= scale;
+      for (let k = 0; k < arr.length; k++) {
+        const i = arr[k];
+        const j = i * 4;
+
+        const x = data[j];
+        const y = data[j + 1];
+
+        const d2 = minDistanceToPolylineSq(x, y, prevPositions);
+        if (d2 < mouseInfluenceRadiusSq) {
+          let u = 1 - (d2 / mouseInfluenceRadiusSq);
+          if (u < 0) u = 0;
+          const infl = u * u;
+
+          let vx = data[j + 2];
+          let vy = data[j + 3];
+
+          vx += mouseVx * infl * mouseInfluenceStrength;
+          vy += mouseVy * infl * mouseInfluenceStrength;
+
+          const sp2 = vx * vx + vy * vy;
+          if (sp2 > maxVelocitySq) {
+            const inv = maxVelocity / Math.sqrt(sp2);
+            vx *= inv;
+            vy *= inv;
+          }
+
+          data[j + 2] = vx;
+          data[j + 3] = vy;
         }
-
-        // Apply mouse influence
-        let distanceToMouseLine = 1000;
-        if (prevPositions.length > 0) {
-            let minDistance = minDistanceToLineSegments(particle.x, particle.y, prevPositions);
-            distanceToMouseLine = minDistance
-        }
-
-        if (distanceToMouseLine < mouseInfluenceRadius) {
-            const mouseInfluence = Math.pow(1 - (distanceToMouseLine / mouseInfluenceRadius), 2);
-            particle.vx += mouseVelocityX * mouseInfluence * mouseInfluenceStrength;
-            particle.vy += mouseVelocityY * mouseInfluence * mouseInfluenceStrength;
-        }
-
-        // Update particle in CanvasFrontend
-        canvasFrontend.moveParticle(index, (particle.x + particle.vx + canvasFrontend.width) % canvasFrontend.width, (particle.y + particle.vy + canvasFrontend.height) % canvasFrontend.height);
-    });
-
-    // Render the updated imageData
-    canvasFrontend.render(currentColor, maxVelocity);
-
-    frameCounter++;
-    if (frameCounter % frameInterval === 0) updateDirectionModifiers();
-    if (is_animation_enabled) requestAnimationFrame(animate);
-}
-
-// Update Direction Modifiers in Flow Mode
-function updateDirectionModifiers() {
-    if (isFlowMode) {
-        directionModifiers.forEach(row => {
-            row.forEach(cell => {
-                cell.angle = (cell.angle + cell.angularVelocity + 2 * Math.PI) % (2 * Math.PI);
-                cell.angularVelocity += (Math.random() - 0.5) * angularVelocityChangeFactor;
-                cell.angularVelocity = Math.min(Math.max(cell.angularVelocity, -maxAngularVelocity), maxAngularVelocity);
-                cell.targetVx = Math.cos(cell.angle) * maxVelocity;
-                cell.targetVy = Math.sin(cell.angle) * maxVelocity;
-            });
-        });
+      }
     }
+  }
+
+  // Render
+  canvasFrontend.render(currentColor, maxVelocity);
+
+  frameCounter++;
+  if ((frameCounter % frameInterval) === 0) updateDirectionModifiers();
+
+  if (is_animation_enabled) requestAnimationFrame(animate);
 }
 
-// Initialize and Start Animation
-resizeCanvas();
-initializeParticles();
+/* ------------------------ Init ------------------------ */
+
+function resizeAndInit() {
+  resizeCanvas();
+  initializeDirectionModifiers();
+  initializeParticles();
+}
+
+resizeAndInit();
 animate();
+
+/* ------------------------ Optional exports ------------------------ */
+// window.setFlowMode = setFlowMode;
+// window.setStraightMode = setStraightMode;
+// window.setBlueFlowMode = setBlueFlowMode;
+// window.setClockwiseCircleMode = setClockwiseCircleMode;
+// window.setWaveMode = setWaveMode;
+// window.add10k = add10k;
+// window.remove10k = remove10k;

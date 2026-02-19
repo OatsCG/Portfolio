@@ -42,10 +42,24 @@
         <button onclick="setWaveMode()">Wave</button>
         <button onclick="setBlueFlowMode()">Blue Flow</button>
         <button onclick="setClockwiseCircleMode()">Clockwise</button>
-
+        <button id="toggleanimation" style="z-index: 100; pointer-events: all;"
+            onclick="remove10k()">
+            -
+        </button>
+        <button id="toggleanimation" style="z-index: 100; pointer-events: all;"
+            onclick="add10k()">
+            +
+        </button>
     </div>
     <canvas id="particleCanvas"></canvas>
-    <script src="particlesthree.js"></script>
+
+    <script src="config.js"></script>
+    <script src="CanvasFrontend.js"></script>
+    <script src="directionField.js"></script>
+    <script src="particles.js"></script>
+    <script src="mouse.js"></script>
+    <script src="modes.js"></script>
+    <script src="main.js"></script>
 </body>
 
 </html>
