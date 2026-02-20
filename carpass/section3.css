@@ -64,8 +64,8 @@
     background-color: #22222466;
     display: flex;
     justify-content: center;
-    backdrop-filter: blur(0.5rem); /* Blur effect */
-    -webkit-backdrop-filter: blur(0.5rem); /* For Safari support */
+    /* backdrop-filter: blur(0.5rem);
+    -webkit-backdrop-filter: blur(0.5rem); */
     align-items: center;
     border-radius: 16px;
     scroll-snap-align: center;
