@@ -39,14 +39,14 @@ window.colors = {
   straight: [{ r: 173, g: 216, b: 230 }],
   pointToCenter: [{ r: 139, g: 0, b: 0 }],
   wave: [
-  { r: 170, g:  40, b: 230 }, // deep electric purple
-  { r: 220, g:  50, b: 210 }, // strong magenta
-  { r: 255, g: 110, b: 200 }, // bright pink
-  { r: 200, g:  30, b: 190 }, // dark magenta
+  { r: 210, g:  50, b: 230 }, // vivid violet
+  { r: 255, g:  80, b: 200 }, // strong hot pink
+  { r: 255, g: 110, b: 190 }, // bright pink
+  { r: 220, g:  40, b: 210 }, // deep magenta
   { r: 153, g:  73, b: 196 }, // original base color
-  { r: 120, g:  50, b: 210 }, // dark violet
-  { r: 110, g:  70, b: 200 }, // muted purple-blue
-  { r: 145, g:  45, b: 220 }  // rich purple (wrap)
+  { r: 130, g:  60, b: 210 }, // dark purple
+  { r: 110, g:  40, b: 190 }, // deeper violet (less blue)
+  { r: 160, g:  55, b: 215 }  // purple-pink wrap (minimal blue)
 ],
   circle: [
   { r: 110, g: 190, b: 220 }, // aqua-blue

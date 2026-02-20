@@ -93,7 +93,7 @@
         out vec4 outColor;
 
         void main() {
-          outColor = vec4(v_color * v_opacity, v_opacity);
+          outColor = vec4(v_color, v_opacity);
         }`;
 
       const vs = this.compileShader(gl.VERTEX_SHADER, vertexShaderSource);
