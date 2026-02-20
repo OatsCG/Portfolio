@@ -28,8 +28,8 @@
 
   const state = {
     frameCounter: 0,
-    targetColor: colors.flow,
-    currentColor: { r: 255, g: 255, b: 255 },
+    targetColors: colors.flow,
+    currentColors: [{ r: 255, g: 255, b: 255 }],
     targetGlowColor: glowColors.flow,
     currentGlowColor: { r: 255, g: 255, b: 255 },
 
@@ -177,6 +177,10 @@
     };
   }
 
+  function transitionColors(current, target, factor = 0.05) {
+    return target;
+  }
+
   function resizeCanvas() {
     canvasFrontend.resizeCanvas();
 
@@ -199,7 +203,7 @@
   window.addEventListener("resize", resizeCanvas);
 
   function animate() {
-    state.currentColor = transitionColor(state.currentColor, state.targetColor);
+    state.currentColors = transitionColors(state.currentColors, state.targetColors);
     state.currentGlowColor = transitionColor(state.currentGlowColor, state.targetGlowColor);
 
     const glowColor =
@@ -335,7 +339,7 @@
       }
     }
 
-    canvasFrontend.render(state.currentColor, SIM.maxVelocity);
+    canvasFrontend.render(state.currentColors, SIM.maxVelocity);
 
     state.frameCounter++;
     if ((state.frameCounter % SIM.frameInterval) === 0) updateDirectionField(dir);

@@ -2,7 +2,7 @@
   function setStraightMode(dir, state) {
     dir.isFlowMode = false;
     state.randomAccelFactor = state.alignmentFactor * 4;
-    state.targetColor = colors.straight;
+    state.targetColors = colors.straight;
     state.targetGlowColor = glowColors.straight;
 
     for (let i = 0; i < dir.cellCount; i++) {
@@ -16,7 +16,7 @@
   function setFlowMode(dir, state) {
     dir.isFlowMode = true;
     state.randomAccelFactor = 0.1;
-    state.targetColor = colors.flow;
+    state.targetColors = colors.flow;
     state.targetGlowColor = glowColors.flow;
     initializeDirectionField(dir);
   }
@@ -24,7 +24,7 @@
   function setBlueFlowMode(dir, state) {
     dir.isFlowMode = false;
     state.randomAccelFactor = state.alignmentFactor / 15;
-    state.targetColor = colors.flow;
+    state.targetColors = colors.flow;
     state.targetGlowColor = glowColors.straight;
 
     const vTurn = SIM.maxVelocity * 0.7; // how strong the vertical "turn" is at row ends
@@ -67,7 +67,7 @@
   function setClockwiseCircleMode(dir, state, geom) {
     dir.isFlowMode = false;
     state.randomAccelFactor = state.alignmentFactor * 2;
-    state.targetColor = colors.circle;
+    state.targetColors = colors.circle;
     state.targetGlowColor = glowColors.circle;
 
     const centerX = geom.width * 0.5;
@@ -94,7 +94,7 @@
   function setWaveMode(dir, state, geom) {
     dir.isFlowMode = false;
     state.randomAccelFactor = state.alignmentFactor * 2;
-    state.targetColor = colors.wave;
+    state.targetColors = colors.wave;
     state.targetGlowColor = glowColors.wave;
 
     const frequency = (2 * Math.PI * 3) / geom.width;
