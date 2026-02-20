@@ -2,7 +2,6 @@
   "use strict";
 
   let is_animation_enabled = true;
-  let useCelledMouse = true;
 
   const canvasFrontend = new CanvasFrontend("particleCanvas");
   const dir = createDirectionField();
@@ -220,7 +219,7 @@
       mouse.prevPositions.length >= 2 &&
       (mouse.vx !== 0 || mouse.vy !== 0);
 
-    if (doMouse && useCelledMouse) {
+    if (doMouse) {
       const now = performance.now();
 
       clearTouchedCellsOnly();
@@ -297,47 +296,16 @@
     }
 
     if (doMouse) {
-      if (useCelledMouse) {
-        for (let ti = 0; ti < mouseTouchedCount; ti++) {
-          const cellIdx = mouseTouchedList[ti];
+      for (let ti = 0; ti < mouseTouchedCount; ti++) {
+        const cellIdx = mouseTouchedList[ti];
 
-          const start = cellOffsets[cellIdx];
-          const end = cellOffsets[cellIdx + 1];
+        const start = cellOffsets[cellIdx];
+        const end = cellOffsets[cellIdx + 1];
 
-          for (let p = start; p < end; p++) {
-            const i = bucketIndices[p];
-            const j = i * 4;
-
-            const x = data[j];
-            const y = data[j + 1];
-
-            const d2 = minDistanceToPolylineSq(x, y, mouse.prevPositions);
-            if (d2 < mouse.radiusSq) {
-              const d = Math.sqrt(d2);
-              const u = 1 - (d / mouse.radius);
-              const infl = u * u;
-
-              let vx = data[j + 2];
-              let vy = data[j + 3];
-
-              vx += mouse.vx * infl * mouse.strength;
-              vy += mouse.vy * infl * mouse.strength;
-
-              const sp2 = vx * vx + vy * vy;
-              if (sp2 > maxVelocitySq * 1.2) {
-                const inv = SIM.maxVelocity / Math.sqrt(sp2);
-                vx *= inv;
-                vy *= inv;
-              }
-
-              data[j + 2] = vx;
-              data[j + 3] = vy;
-            }
-          }
-        }
-      } else {
-        for (let i = 0; i < N; i++) {
+        for (let p = start; p < end; p++) {
+          const i = bucketIndices[p];
           const j = i * 4;
+
           const x = data[j];
           const y = data[j + 1];
 
@@ -355,9 +323,9 @@
 
             const sp2 = vx * vx + vy * vy;
             if (sp2 > maxVelocitySq * 1.2) {
-              const inv = SIM.maxVelocity / Math.sqrt(sp2);
-              vx *= inv;
-              vy *= inv;
+              // const inv = SIM.maxVelocity / Math.sqrt(sp2);
+              // vx *= inv;
+              // vy *= inv;
             }
 
             data[j + 2] = vx;
@@ -416,8 +384,6 @@
   };
 
   // Tuning hooks
-  window.setUseCelledMouse = (v) => { useCelledMouse = !!v; };
-  window.toggleCelledMouse = () => (useCelledMouse = !useCelledMouse);
 
   window.setMouseGrid = (rows, cols) => {
     rows = Math.max(1, rows | 0);
