@@ -117,6 +117,7 @@
     setParticleCount(n) {
       this.count = n | 0;
       this.particleData = new Float32Array(this.count * 4);
+      document.getElementById("particleCount").textContent = n;
 
       const gl = this.gl;
       gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);
@@ -133,6 +134,7 @@
 
       this.count = newCount;
       this.particleData = newData;
+      document.getElementById("particleCount").textContent = newCount;
 
       const gl = this.gl;
       gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);

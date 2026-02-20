@@ -21,7 +21,7 @@
   }
 
   function add10k(canvasFrontend, state) {
-    const add = 10000;
+    const add = 20000;
     const oldN = canvasFrontend.count;
     const newN = oldN + add;
 
@@ -40,7 +40,7 @@
   }
 
   function remove10k(canvasFrontend, state) {
-    const remove = 10000;
+    const remove = 20000;
     const oldN = canvasFrontend.count;
     if (oldN <= remove) return;
 
