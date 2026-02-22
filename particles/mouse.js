@@ -23,6 +23,7 @@
     }
 
     canvasFrontend.canvas.addEventListener("mousemove", (event) => {
+      if (!SIM.is_animation_enabled) { return }
       const now = performance.now();
 
       // Light throttle so we don’t over-sample mousemove at 200–500Hz

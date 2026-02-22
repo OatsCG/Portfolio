@@ -23,7 +23,9 @@ window.SIM = {
 
   // NEW: how often we rebuild particle buckets while mouse is active (ms)
   // 50ms = 20Hz; 33ms = 30Hz; 80ms = 12.5Hz
-  mouseBucketIntervalMs: 50
+  mouseBucketIntervalMs: 50,
+
+  is_animation_enabled: true
 };
 
 window.colors = {

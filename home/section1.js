@@ -61,16 +61,16 @@ document.addEventListener("DOMContentLoaded", () => {
         // Implement your section-specific logic here
         console.log(`Active section: ${sectionKey}`);
         if (sectionKey == "section-1") {
-            document.getElementById('particleCanvas').style.filter = 'drop-shadow(0px 0px 50px #fff) drop-shadow(0px 0px 20px #fff)';
+            // document.getElementById('particleCanvas').style.filter = 'drop-shadow(0px 0px 50px #fff) drop-shadow(0px 0px 20px #fff)';
             setFlowMode()
         } else if (sectionKey == "section-2") {
-            document.getElementById('particleCanvas').style.filter = 'drop-shadow(0px 0px 50px #6673ff) drop-shadow(0px 0px 20px #6673ff)';
+            // document.getElementById('particleCanvas').style.filter = 'drop-shadow(0px 0px 50px #6673ff) drop-shadow(0px 0px 20px #6673ff)';
             setWaveMode()
         } else if (sectionKey == "section-3") {
             // document.getElementById('particleCanvas').style.filter = 'drop-shadow(0px 0px 50px #fff) drop-shadow(0px 0px 20px #fff)';
             setClockwiseCircleMode()
         } else if (sectionKey == "section-4") {
-            document.getElementById('particleCanvas').style.filter = 'drop-shadow(0px 0px 50px #fff) drop-shadow(0px 0px 20px #fff)';
+            // document.getElementById('particleCanvas').style.filter = 'drop-shadow(0px 0px 50px #fff) drop-shadow(0px 0px 20px #fff)';
             setBlueFlowMode()
         }
     }
@@ -85,23 +85,22 @@ document.addEventListener("DOMContentLoaded", () => {
 function toggleAnimation() {
     const canvas = document.getElementById("particleCanvas");
 
-    if (is_animation_enabled === true) {
+    if (SIM.is_animation_enabled === true) {
         // Animate canvas blackout
         canvas.style.animation = "fadeOut 0.5s ease-in forwards";
 
         // Disable animation after the fade-out completes
         canvas.addEventListener('animationend', () => {
-            is_animation_enabled = false;
+            SIM.is_animation_enabled = false;
             canvas.style.opacity = 0;
         }, {
             once: true
         });
 
     } else {
-        is_animation_enabled = true;
-        resizeCanvas();
-        initializeParticles();
-        animate();
+        SIM.is_animation_enabled = true;
+        window.resizeCanvas()
+        window.animate();
         // Animate canvas in
         canvas.style.opacity = 1;
         canvas.style.animation = "fadeIn 0.5s ease-in forwards";

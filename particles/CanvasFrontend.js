@@ -215,8 +215,58 @@
 
       this.clearCanvas();
       gl.drawArrays(gl.POINTS, 0, this.count);
+      mirrorParticleCanvasToBG()
     }
   }
 
   window.CanvasFrontend = CanvasFrontend;
 })();
+
+// Copies the already-rendered WebGL canvas pixels onto a 2D background canvas.
+// No extra particle/sim calculations; it just blits the image.
+function mirrorParticleCanvasToBG() {
+  const src = document.getElementById("particleCanvas");     // WebGL2 canvas
+  const dst = document.getElementById("particleCanvasBG");   // 2D canvas
+
+  if (!src || !dst) return;
+
+  // Match exact pixel size (your sim uses canvas.width/height = innerWidth/innerHeight)
+  if (dst.width !== src.width) dst.width = src.width;
+  if (dst.height !== src.height) dst.height = src.height;
+
+  const ctx = dst.getContext("2d", { alpha: true });
+  if (!ctx) return;
+
+  // "copy" replaces pixels exactly (including alpha), no blending artifacts
+  ctx.globalCompositeOperation = "copy";
+  ctx.drawImage(src, 0, 0);
+  ctx.globalCompositeOperation = "source-over";
+}
+
+function mirrorParticleCanvasToBGFullOpacity() {
+  const src = document.getElementById("particleCanvas");
+  const dst = document.getElementById("particleCanvasBG");
+
+  if (!src || !dst) return;
+
+  if (dst.width !== src.width) dst.width = src.width;
+  if (dst.height !== src.height) dst.height = src.height;
+
+  const ctx = dst.getContext("2d", { alpha: true });
+  if (!ctx) return;
+
+  // Draw original
+  ctx.clearRect(0, 0, dst.width, dst.height);
+  ctx.drawImage(src, 0, 0);
+
+  // Read pixels
+  const imageData = ctx.getImageData(0, 0, dst.width, dst.height);
+  const data = imageData.data;
+
+  // Force every pixel to full opacity
+  for (let i = 3; i < data.length; i += 4) {
+    data[i] = data[i] + data[i]; // alpha channel
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}

@@ -1,8 +1,6 @@
 (function () {
   "use strict";
 
-  let is_animation_enabled = true;
-
   const canvasFrontend = new CanvasFrontend("particleCanvas");
   const dir = createDirectionField();
   const particles = createParticles(canvasFrontend); // state now has no floatId
@@ -178,7 +176,27 @@
   }
 
   function transitionColors(current, target, factor = 0.05) {
-    return target;
+    if (areArraysEqual(current, target)) { return }
+    if (target.length < current.length) {
+      current = current.slice(0, target.length)
+    } else if (target.length > current.length) {
+      current = current.concat(Array(target.length - current.length).fill(current[current.length - 1]))
+    }
+    for (var i = 0; i < target.length; i++) {
+      current[i] = transitionColor(current[i], target[i])
+    }
+    return current;
+  }
+
+  function areArraysEqual(arr1, arr2) {
+    if (arr1 === arr2) return true;
+    if (arr1.length !== arr2.length) return false;
+
+    for (let i = 0; i < arr1.length; ++i) {
+      if (arr1[i] !== arr2[i]) return false;
+    }
+
+    return true;
   }
 
   function resizeCanvas() {
@@ -204,12 +222,12 @@
 
   function animate() {
     state.currentColors = transitionColors(state.currentColors, state.targetColors);
-    state.currentGlowColor = transitionColor(state.currentGlowColor, state.targetGlowColor);
+    // state.currentGlowColor = transitionColor(state.currentGlowColor, state.targetGlowColor);
 
-    const glowColor =
-      `rgb(${state.currentGlowColor.r | 0}, ${state.currentGlowColor.g | 0}, ${state.currentGlowColor.b | 0})`;
-    canvasFrontend.canvas.style.filter =
-      `drop-shadow(0px 0px 50px ${glowColor}) drop-shadow(0px 0px 10px ${glowColor})`;
+    // const glowColor =
+      // `rgb(${state.currentGlowColor.r | 0}, ${state.currentGlowColor.g | 0}, ${state.currentGlowColor.b | 0})`;
+    // canvasFrontend.canvas.style.filter =
+      // `drop-shadow(0px 0px 50px ${glowColor}) drop-shadow(0px 0px 10px ${glowColor})`;
 
     decayMouse(mouse);
 
@@ -344,7 +362,7 @@
     state.frameCounter++;
     if ((state.frameCounter % SIM.frameInterval) === 0) updateDirectionField(dir);
 
-    if (is_animation_enabled) requestAnimationFrame(animate);
+    if (SIM.is_animation_enabled) requestAnimationFrame(animate);
   }
 
   // Init
@@ -370,6 +388,8 @@
   window.setBlueFlowMode = () => _setBlueFlowMode(dir, state);
   window.setClockwiseCircleMode = () => _setClockwiseCircleMode(dir, state, geom);
   window.setWaveMode = () => _setWaveMode(dir, state, geom);
+  window.resizeCanvas = () => resizeCanvas();
+  window.animate = () => animate();
 
   const _add10k = window.add10k;
   const _remove10k = window.remove10k;
