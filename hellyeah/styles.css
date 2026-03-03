@@ -48,41 +48,70 @@ body {
   max-height: 58vh;
   width: auto;
   object-fit: contain;
-  pointer-events: none;
   transform: translateY(0);
+  pointer-events: none;
 }
 
+/* Keep the two arms always 5vh apart */
 .arm-left {
-  left: 0;
+  left: 50%;
+  transform: translateX(calc(-100% - 0vh)) translateY(0);
 }
 
 .arm-right {
-  right: 0;
+  left: 50%;
+  transform: translateX(0vh) translateY(0);
 }
 
-.arm.slide-out {
-  animation: armSlideOut 0.32s linear forwards;
+.arm-left.slide-out {
+  animation: leftArmSlideOut 0.32s linear forwards;
 }
 
-.arm.slide-in {
-  animation: armSlideIn 0.32s linear forwards;
+.arm-left.slide-in {
+  animation: leftArmSlideIn 0.32s linear forwards;
 }
 
-@keyframes armSlideOut {
+.arm-right.slide-out {
+  animation: rightArmSlideOut 0.32s linear forwards;
+}
+
+.arm-right.slide-in {
+  animation: rightArmSlideIn 0.32s linear forwards;
+}
+
+@keyframes leftArmSlideOut {
   from {
-    transform: translateY(0);
+    transform: translateX(calc(-100% - 2.5vh)) translateY(0);
   }
   to {
-    transform: translateY(100%);
+    transform: translateX(calc(-100% - 2.5vh)) translateY(100%);
   }
 }
 
-@keyframes armSlideIn {
+@keyframes leftArmSlideIn {
   from {
-    transform: translateY(100%);
+    transform: translateX(calc(-100% - 2.5vh)) translateY(100%);
   }
   to {
-    transform: translateY(0);
+    transform: translateX(calc(-100% - 2.5vh)) translateY(0);
+  }
+}
+
+@keyframes rightArmSlideOut {
+  from {
+    transform: translateX(2.5vh) translateY(0);
+  }
+  to {
+    transform: translateX(2.5vh) translateY(100%);
+  }
+}
+
+@keyframes rightArmSlideIn {
+  from {
+    transform: translateX(2.5vh) translateY(100%);
+  }
+  to {
+    transform: translateX(2.5vh) translateY(0);
   }
 }
 
@@ -258,7 +287,7 @@ body {
   }
 
   .arm {
-    max-height: 42vh;
+    max-height: 32vh;
   }
 }
 
