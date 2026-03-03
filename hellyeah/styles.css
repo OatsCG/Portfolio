@@ -45,7 +45,7 @@ body {
 .arm {
   position: absolute;
   bottom: 0;
-  max-height: 58vh;
+  max-height: 35vh;
   width: auto;
   object-fit: contain;
   transform: translateY(0);
@@ -81,19 +81,19 @@ body {
 
 @keyframes leftArmSlideOut {
   from {
-    transform: translateX(calc(-100% - 2.5vh)) translateY(0);
+    transform: translateX(calc(-100% - 0vh)) translateY(0);
   }
   to {
-    transform: translateX(calc(-100% - 2.5vh)) translateY(100%);
+    transform: translateX(calc(-100% - 0vh)) translateY(100%);
   }
 }
 
 @keyframes leftArmSlideIn {
   from {
-    transform: translateX(calc(-100% - 2.5vh)) translateY(100%);
+    transform: translateX(calc(-100% - 0vh)) translateY(100%);
   }
   to {
-    transform: translateX(calc(-100% - 2.5vh)) translateY(0);
+    transform: translateX(calc(-100% - 0vh)) translateY(0);
   }
 }
 
@@ -284,10 +284,6 @@ body {
     min-width: unset;
     max-width: 300px;
     bottom: 12px;
-  }
-
-  .arm {
-    max-height: 32vh;
   }
 }
 
