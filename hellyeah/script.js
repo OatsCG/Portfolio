@@ -31,8 +31,8 @@ const songs = [
   {
     url: "songs/song3.mp3",
     artworkurl: "artwork/artwork3.png",
-    title: "Bring Me To Life",
-    artist: "Evanescence"
+    title: "Lady (Hear Me Tonight)",
+    artist: "Modjo"
   }
 ];
 
@@ -273,7 +273,7 @@ function cycleRide() {
 }
 
 // -----------------------------
-// EVENTS
+// INPUT EVENTS
 // -----------------------------
 carouselPrev.addEventListener("click", showPrevVideo);
 carouselNext.addEventListener("click", showNextVideo);
@@ -300,6 +300,45 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
+function handleScreenTap(clientX, targetElement) {
+  // Ignore taps on UI controls so buttons still work normally
+  if (
+    targetElement.closest(".video-carousel") ||
+    targetElement.closest(".music-player")
+  ) {
+    return;
+  }
+
+  const screenWidth = window.innerWidth;
+  const leftBoundary = screenWidth / 3;
+  const rightBoundary = (screenWidth / 3) * 2;
+
+  if (clientX < leftBoundary) {
+    cycleLeftArm();
+  } else if (clientX < rightBoundary) {
+    cycleRide();
+  } else {
+    cycleRightArm();
+  }
+}
+
+// Touch support for mobile
+window.addEventListener(
+  "touchstart",
+  (event) => {
+    if (!event.touches || event.touches.length === 0) return;
+
+    const touch = event.touches[0];
+    handleScreenTap(touch.clientX, event.target);
+  },
+  { passive: true }
+);
+
+// Optional desktop support: clicking left/middle/right of screen does the same
+window.addEventListener("click", (event) => {
+  handleScreenTap(event.clientX, event.target);
+});
+
 // -----------------------------
 // INITIAL LOAD
 // -----------------------------
@@ -309,3 +348,4 @@ window.addEventListener("load", () => {
   updateVideoUI();
   loadSong(currentSongIndex, true);
 });
+
