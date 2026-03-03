@@ -194,32 +194,28 @@ function setInitialArms() {
 
 function animateArmSwap(armElement, newSrc) {
   armElement.classList.remove("slide-in", "slide-out");
-
-  // force reflow so animation can restart cleanly
   void armElement.offsetWidth;
 
   armElement.classList.add("slide-out");
 
-  const onOutEnd = (event) => {
-    if (event.animationName !== "armSlideOut") return;
-
+  const onOutEnd = () => {
     armElement.removeEventListener("animationend", onOutEnd);
+
     armElement.src = newSrc;
     armElement.classList.remove("slide-out");
 
     void armElement.offsetWidth;
     armElement.classList.add("slide-in");
 
-    const onInEnd = (inEvent) => {
-      if (inEvent.animationName !== "armSlideIn") return;
+    const onInEnd = () => {
       armElement.removeEventListener("animationend", onInEnd);
       armElement.classList.remove("slide-in");
     };
 
-    armElement.addEventListener("animationend", onInEnd);
+    armElement.addEventListener("animationend", onInEnd, { once: true });
   };
 
-  armElement.addEventListener("animationend", onOutEnd);
+  armElement.addEventListener("animationend", onOutEnd, { once: true });
 }
 
 function cycleLeftArm() {

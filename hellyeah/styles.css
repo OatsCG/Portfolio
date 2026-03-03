@@ -99,19 +99,19 @@ body {
 
 @keyframes rightArmSlideOut {
   from {
-    transform: translateX(2.5vh) translateY(0);
+    transform: translateX(0vh) translateY(0);
   }
   to {
-    transform: translateX(2.5vh) translateY(100%);
+    transform: translateX(0vh) translateY(100%);
   }
 }
 
 @keyframes rightArmSlideIn {
   from {
-    transform: translateX(2.5vh) translateY(100%);
+    transform: translateX(0vh) translateY(100%);
   }
   to {
-    transform: translateX(2.5vh) translateY(0);
+    transform: translateX(0vh) translateY(0);
   }
 }
 
