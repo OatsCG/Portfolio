@@ -39,6 +39,33 @@ const songs = [
 let currentSongIndex = Math.floor(Math.random() * songs.length);
 
 // -----------------------------
+// ARM SETUP
+// -----------------------------
+const leftarms = [
+  "arms/leftarm1.png",
+  "arms/leftarm2.png"
+];
+
+const rightarms = [
+  "arms/rightarm1.png",
+  "arms/rightarm2.png"
+];
+
+let currentLeftArmIndex = 0;
+let currentRightArmIndex = 0;
+
+// -----------------------------
+// RIDE SETUP
+// -----------------------------
+const rides = [
+  "rides/ride1.png",
+  "rides/ride2.png",
+  "rides/ride3.png"
+];
+
+let currentRideIndex = 0;
+
+// -----------------------------
 // ELEMENTS
 // -----------------------------
 const activeVideo = document.getElementById("activeVideo");
@@ -54,6 +81,11 @@ const progressBarInner = document.getElementById("progressBarInner");
 const prevSongBtn = document.getElementById("prevSongBtn");
 const playPauseBtn = document.getElementById("playPauseBtn");
 const nextSongBtn = document.getElementById("nextSongBtn");
+
+const leftArm = document.getElementById("leftArm");
+const rightArm = document.getElementById("rightArm");
+
+const rideImage = document.getElementById("rideImage");
 
 // Separate audio object for music
 const audioPlayer = new Audio();
@@ -103,12 +135,12 @@ function loadSong(index, shouldPlay = true) {
   audioPlayer.src = currentSong.url;
   updateSongInfoUI();
   updatePlayPauseButton();
+  progressBarInner.style.width = "0%";
 
   if (shouldPlay) {
     audioPlayer.play().then(() => {
       updatePlayPauseButton();
     }).catch(() => {
-      // Browsers may block autoplay until user interaction.
       updatePlayPauseButton();
     });
   }
@@ -153,6 +185,94 @@ function updateProgressBar() {
 }
 
 // -----------------------------
+// ARM FUNCTIONS
+// -----------------------------
+function setInitialArms() {
+  leftArm.src = leftarms[currentLeftArmIndex];
+  rightArm.src = rightarms[currentRightArmIndex];
+}
+
+function animateArmSwap(armElement, newSrc) {
+  armElement.classList.remove("slide-in", "slide-out");
+
+  // force reflow so animation can restart cleanly
+  void armElement.offsetWidth;
+
+  armElement.classList.add("slide-out");
+
+  const onOutEnd = (event) => {
+    if (event.animationName !== "armSlideOut") return;
+
+    armElement.removeEventListener("animationend", onOutEnd);
+    armElement.src = newSrc;
+    armElement.classList.remove("slide-out");
+
+    void armElement.offsetWidth;
+    armElement.classList.add("slide-in");
+
+    const onInEnd = (inEvent) => {
+      if (inEvent.animationName !== "armSlideIn") return;
+      armElement.removeEventListener("animationend", onInEnd);
+      armElement.classList.remove("slide-in");
+    };
+
+    armElement.addEventListener("animationend", onInEnd);
+  };
+
+  armElement.addEventListener("animationend", onOutEnd);
+}
+
+function cycleLeftArm() {
+  currentLeftArmIndex = (currentLeftArmIndex + 1) % leftarms.length;
+  animateArmSwap(leftArm, leftarms[currentLeftArmIndex]);
+}
+
+function cycleRightArm() {
+  currentRightArmIndex = (currentRightArmIndex + 1) % rightarms.length;
+  animateArmSwap(rightArm, rightarms[currentRightArmIndex]);
+}
+
+// -----------------------------
+// RIDE FUNCTIONS
+// -----------------------------
+function setInitialRide() {
+  rideImage.src = rides[currentRideIndex];
+}
+
+function animateRideSwap(newSrc) {
+  rideImage.classList.remove("slide-in", "slide-out");
+  void rideImage.offsetWidth;
+
+  rideImage.classList.add("slide-out");
+
+  const onOutEnd = (event) => {
+    if (event.animationName !== "rideSlideOut") return;
+
+    rideImage.removeEventListener("animationend", onOutEnd);
+    rideImage.src = newSrc;
+    rideImage.classList.remove("slide-out");
+
+    void rideImage.offsetWidth;
+    rideImage.classList.add("slide-in");
+
+    const onInEnd = (e) => {
+      if (e.animationName !== "rideSlideIn") return;
+      rideImage.removeEventListener("animationend", onInEnd);
+      rideImage.classList.remove("slide-in");
+    };
+
+    rideImage.addEventListener("animationend", onInEnd);
+  };
+
+  rideImage.addEventListener("animationend", onOutEnd);
+}
+
+function cycleRide() {
+  currentRideIndex = (currentRideIndex + 1) % rides.length;
+  animateRideSwap(rides[currentRideIndex]);
+}
+
+// -----------------------------
 // EVENTS
 // -----------------------------
 carouselPrev.addEventListener("click", showPrevVideo);
@@ -168,10 +288,24 @@ audioPlayer.addEventListener("ended", playNextSong);
 audioPlayer.addEventListener("play", updatePlayPauseButton);
 audioPlayer.addEventListener("pause", updatePlayPauseButton);
 
+window.addEventListener("keydown", (event) => {
+  const key = event.key.toLowerCase();
+
+  if (key === "a") {
+    cycleLeftArm();
+  } else if (key === "d") {
+    cycleRightArm();
+  } else if (key === "s") {
+    cycleRide();
+  }
+});
+
 // -----------------------------
 // INITIAL LOAD
 // -----------------------------
 window.addEventListener("load", () => {
+  setInitialRide();
+  setInitialArms();
   updateVideoUI();
   loadSong(currentSongIndex, true);
 });

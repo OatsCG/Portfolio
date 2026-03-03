@@ -10,6 +10,14 @@
   <!-- Fullscreen active video -->
   <video id="activeVideo" autoplay muted loop playsinline></video>
 
+  <img id="rideImage" class="ride-image" src="" alt="Ride">
+  
+  <!-- Arm overlays -->
+  <div class="arm-layer">
+    <img id="leftArm" class="arm arm-left" src="" alt="Left arm" />
+    <img id="rightArm" class="arm arm-right" src="" alt="Right arm" />
+  </div>
+
   <!-- Top-left video thumbnail carousel -->
   <div class="video-carousel overlay-fade">
     <button id="carouselPrev" class="carousel-arrow" aria-label="Previous video">❮</button>
@@ -23,23 +31,23 @@
 
   <!-- Bottom-middle music controls -->
   <div class="music-player overlay-fade">
-    <div class="music-info">
+    <div class="music-top-row">
       <img id="songArtwork" class="song-artwork" src="" alt="Album artwork" />
 
       <div class="song-meta">
         <div id="songTitle" class="song-title">Title</div>
         <div id="songArtist" class="song-artist">Artist</div>
-
-        <div class="progress-bar-outer" aria-hidden="true">
-          <div id="progressBarInner" class="progress-bar-inner"></div>
-        </div>
-
-        <div class="music-buttons">
-          <button id="prevSongBtn" class="music-btn" aria-label="Previous song">⏮</button>
-          <button id="playPauseBtn" class="music-btn" aria-label="Play or pause">⏯</button>
-          <button id="nextSongBtn" class="music-btn" aria-label="Next song">⏭</button>
-        </div>
       </div>
+    </div>
+
+    <div class="progress-bar-outer" aria-hidden="true">
+      <div id="progressBarInner" class="progress-bar-inner"></div>
+    </div>
+
+    <div class="music-buttons">
+      <button id="prevSongBtn" class="music-btn" aria-label="Previous song">⏮</button>
+      <button id="playPauseBtn" class="music-btn" aria-label="Play or pause">⏯</button>
+      <button id="nextSongBtn" class="music-btn" aria-label="Next song">⏭</button>
     </div>
   </div>
 
