@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hellyeah</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Fullscreen active video -->
+  <video id="activeVideo" autoplay muted loop playsinline></video>
+
+  <!-- Top-left video thumbnail carousel -->
+  <div class="video-carousel overlay-fade">
+    <button id="carouselPrev" class="carousel-arrow" aria-label="Previous video">❮</button>
+
+    <div class="carousel-thumbnail-wrap">
+      <img id="carouselThumbnail" class="carousel-thumbnail" src="" alt="Current video thumbnail" />
+    </div>
+
+    <button id="carouselNext" class="carousel-arrow" aria-label="Next video">❯</button>
+  </div>
+
+  <!-- Bottom-middle music controls -->
+  <div class="music-player overlay-fade">
+    <div class="music-info">
+      <img id="songArtwork" class="song-artwork" src="" alt="Album artwork" />
+
+      <div class="song-meta">
+        <div id="songTitle" class="song-title">Title</div>
+        <div id="songArtist" class="song-artist">Artist</div>
+
+        <div class="progress-bar-outer" aria-hidden="true">
+          <div id="progressBarInner" class="progress-bar-inner"></div>
+        </div>
+
+        <div class="music-buttons">
+          <button id="prevSongBtn" class="music-btn" aria-label="Previous song">⏮</button>
+          <button id="playPauseBtn" class="music-btn" aria-label="Play or pause">⏯</button>
+          <button id="nextSongBtn" class="music-btn" aria-label="Next song">⏭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

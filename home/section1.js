@@ -80,29 +80,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
-
-
-function toggleAnimation() {
-    const canvas = document.getElementById("particleCanvas");
-
-    if (SIM.is_animation_enabled === true) {
-        // Animate canvas blackout
-        canvas.style.animation = "fadeOut 0.5s ease-in forwards";
-
-        // Disable animation after the fade-out completes
-        canvas.addEventListener('animationend', () => {
-            SIM.is_animation_enabled = false;
-            canvas.style.opacity = 0;
-        }, {
-            once: true
-        });
-
-    } else {
-        SIM.is_animation_enabled = true;
-        window.resizeCanvas()
-        window.animate();
-        // Animate canvas in
-        canvas.style.opacity = 1;
-        canvas.style.animation = "fadeIn 0.5s ease-in forwards";
-    }
-}
