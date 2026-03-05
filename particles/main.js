@@ -200,7 +200,7 @@
   }
 
   function resizeCanvas() {
-    canvasFrontend.resizeCanvas();
+    // canvasFrontend.resizeCanvas();
 
     geom.width = canvasFrontend.width;
     geom.height = canvasFrontend.height;
@@ -215,7 +215,14 @@
     mouseGeom.invCellWidth = 1 / mouseGeom.cellWidth;
     mouseGeom.invCellHeight = 1 / mouseGeom.cellHeight;
 
-    initializeDirectionField(dir);
+    // Reapply the current section mode instead of reinitializing
+    // This respects the scroll position when resizing
+    if (window.reapplyCurrentSectionMode) {
+      window.reapplyCurrentSectionMode();
+    } else {
+      // Fallback to default initialization if section mode handler isn't loaded
+      initializeDirectionField(dir);
+    }
   }
 
   window.addEventListener("resize", resizeCanvas);

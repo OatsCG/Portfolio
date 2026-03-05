@@ -24,7 +24,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentAnchor = null;
 
-    window.addEventListener("scroll", () => {
+    // Define the functions
+    function runFunctionForSection(sectionKey) {
+        console.log(`Active section: ${sectionKey}`);
+        if (sectionKey == "home-section") {
+            setFlowMode()
+        } else if (sectionKey == "openmusic-section") {
+            setWaveMode()
+        } else if (sectionKey == "carpass-section") {
+            setClockwiseCircleMode()
+        } else if (sectionKey == "unisports-section") {
+            setBlueFlowMode()
+        }
+    }
+
+    function runFunctionWhenOutOfAllSections() {
+        setFlowMode()
+    }
+
+    function updateSectionMode() {
         let newAnchor = null;
 
         // Check if any section is in view
@@ -54,24 +72,13 @@ document.addEventListener("DOMContentLoaded", () => {
             // Update the current anchor
             currentAnchor = newAnchor;
         }
-    });
-
-    // Define the functions
-    function runFunctionForSection(sectionKey) {
-        console.log(`Active section: ${sectionKey}`);
-        if (sectionKey == "home-section") {
-            setFlowMode()
-        } else if (sectionKey == "openmusic-section") {
-            setWaveMode()
-        } else if (sectionKey == "carpass-section") {
-            setClockwiseCircleMode()
-        } else if (sectionKey == "unisports-section") {
-            setBlueFlowMode()
-        }
     }
 
-    function runFunctionWhenOutOfAllSections() {
-        setFlowMode()
-    }
+    window.addEventListener("scroll", updateSectionMode);
 
+    // Set initial mode based on current scroll position
+    updateSectionMode();
+
+    // Export function to reapply current mode (used on resize)
+    window.reapplyCurrentSectionMode = updateSectionMode;
 });
