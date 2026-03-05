@@ -133,7 +133,7 @@
 
     // Center at (75% width, 50% height)
     const centerX = geom.width * 0.75;
-    const centerY = geom.height * 0.25;
+    const centerY = geom.height * 0.5;
 
     for (let row = 0; row < SIM.gridRows; row++) {
       for (let col = 0; col < SIM.gridCols; col++) {

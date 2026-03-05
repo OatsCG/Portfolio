@@ -362,7 +362,10 @@
     state.frameCounter++;
     if ((state.frameCounter % SIM.frameInterval) === 0) updateDirectionField(dir);
 
-    if (SIM.is_animation_enabled) requestAnimationFrame(animate);
+    if (SIM.is_animation_enabled) {
+      // requestAnimationFrame(animate);
+      setTimeout(animate, 8)
+    }
   }
 
   // Init
