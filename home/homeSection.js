@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const buttons = document.querySelectorAll(".nav-button");
     const sections = {
         "home-section": document.querySelector(".home-section"),
+        "about-section": document.querySelector(".about-section"),
         "openmusic-section": document.querySelector(".openmusic-section"),
         "carpass-section": document.querySelector(".carpass-section"),
         "unisports-section": document.querySelector(".unisports-section"),
@@ -29,6 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(`Active section: ${sectionKey}`);
         if (sectionKey == "home-section") {
             setFlowMode()
+        } else if (sectionKey == "about-section") {
+            setClockwiseOffsetCircleMode()
         } else if (sectionKey == "openmusic-section") {
             setWaveMode()
         } else if (sectionKey == "carpass-section") {

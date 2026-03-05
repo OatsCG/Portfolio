@@ -128,12 +128,12 @@
   function setClockwiseOffsetCircleMode(dir, state, geom) {
     dir.isFlowMode = false;
     state.randomAccelFactor = state.alignmentFactor * 2;
-    state.targetColors = colors.flow;      // or make a new palette if you want
+    state.targetColors = colors.flow;
     state.targetGlowColor = glowColors.circle;
 
     // Center at (75% width, 50% height)
-    const centerX = geom.width * 0.75;
-    const centerY = geom.height * 0.5;
+    const centerX = geom.width * 1;
+    const centerY = geom.height * 1;
 
     for (let row = 0; row < SIM.gridRows; row++) {
       for (let col = 0; col < SIM.gridCols; col++) {
@@ -144,7 +144,7 @@
 
         const dx = cellCenterX - centerX;
         const dy = cellCenterY - centerY;
-        const dist = -Math.sqrt(dx * dx + dy * dy) || 1;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
         // Clockwise tangent: (dy, -dx) normalized
         dir.targetVx[idx] = (dy / dist) * SIM.maxVelocity * 0.7;
