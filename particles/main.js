@@ -382,12 +382,14 @@
   const _setBlueFlowMode = window.setBlueFlowMode;
   const _setClockwiseCircleMode = window.setClockwiseCircleMode;
   const _setWaveMode = window.setWaveMode;
+  const _setClockwiseOffsetCircleMode = window.setClockwiseOffsetCircleMode;
 
   window.setFlowMode = () => _setFlowMode(dir, state);
   window.setStraightMode = () => _setStraightMode(dir, state);
   window.setBlueFlowMode = () => _setBlueFlowMode(dir, state);
   window.setClockwiseCircleMode = () => _setClockwiseCircleMode(dir, state, geom);
   window.setWaveMode = () => _setWaveMode(dir, state, geom);
+  window.setClockwiseOffsetCircleMode = () => _setClockwiseOffsetCircleMode(dir, state, geom);
   window.resizeCanvas = () => resizeCanvas();
   window.animate = () => animate();
 

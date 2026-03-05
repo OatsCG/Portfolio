@@ -125,9 +125,43 @@
     }
   }
 
+  function setClockwiseOffsetCircleMode(dir, state, geom) {
+    dir.isFlowMode = false;
+    state.randomAccelFactor = state.alignmentFactor * 2;
+    state.targetColors = colors.flow;      // or make a new palette if you want
+    state.targetGlowColor = glowColors.circle;
+
+    // Center at (75% width, 50% height)
+    const centerX = geom.width * 0.75;
+    const centerY = geom.height * 0.25;
+
+    for (let row = 0; row < SIM.gridRows; row++) {
+      for (let col = 0; col < SIM.gridCols; col++) {
+        const idx = row * SIM.gridCols + col;
+
+        const cellCenterX = (col + 0.5) * geom.cellWidth;
+        const cellCenterY = (row + 0.5) * geom.cellHeight;
+
+        const dx = cellCenterX - centerX;
+        const dy = cellCenterY - centerY;
+        const dist = -Math.sqrt(dx * dx + dy * dy) || 1;
+
+        // Clockwise tangent: (dy, -dx) normalized
+        dir.targetVx[idx] = (dy / dist) * SIM.maxVelocity * 0.7;
+        dir.targetVy[idx] = -(dx / dist) * SIM.maxVelocity * 0.7;
+
+        dir.angVel[idx] = 0;
+
+        // Optional (only if you rely on dir.angle elsewhere)
+        dir.angle[idx] = Math.atan2(dir.targetVy[idx], dir.targetVx[idx]);
+      }
+    }
+  }
+
   window.setFlowMode = setFlowMode;
   window.setStraightMode = setStraightMode;
   window.setBlueFlowMode = setBlueFlowMode;
   window.setClockwiseCircleMode = setClockwiseCircleMode;
   window.setWaveMode = setWaveMode;
+  window.setClockwiseOffsetCircleMode = setClockwiseOffsetCircleMode;
 })();
