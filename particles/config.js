@@ -30,14 +30,25 @@ window.SIM = {
 
 window.colors = {
   flow: [
-  { r: 230, g: 120, b: 120 }, // soft red
-  { r: 230, g: 160, b: 110 }, // soft orange
-  { r: 230, g: 210, b: 120 }, // soft yellow
-  { r: 120, g: 200, b: 130 }, // soft green
-  { r: 110, g: 190, b: 210 }, // soft cyan
-  { r: 120, g: 140, b: 220 }, // soft blue
-  { r: 180, g: 130, b: 210 }  // soft violet
-],
+    { r: 230, g: 120, b: 120 }, // soft red
+    { r: 230, g: 160, b: 110 }, // soft orange
+    { r: 230, g: 210, b: 120 }, // soft yellow
+    { r: 120, g: 200, b: 130 }, // soft green
+    { r: 110, g: 190, b: 210 }, // soft cyan
+    { r: 120, g: 140, b: 220 }, // soft blue
+    { r: 180, g: 130, b: 210 }  // soft violet
+  ],
+  about: [
+    { r: 120, g: 140, b: 220 }, // soft blue
+    { r: 180, g: 130, b: 210 },  // soft violet
+    { r: 230, g: 120, b: 120 }, // soft red
+    { r: 120, g: 140, b: 220 }, // soft blue
+    { r: 180, g: 130, b: 210 },  // soft violet
+    { r: 230, g: 120, b: 120 }, // soft red
+    { r: 120, g: 140, b: 220 }, // soft blue
+    { r: 180, g: 130, b: 210 },  // soft violet
+    { r: 230, g: 120, b: 120 }, // soft red
+  ],
   straight: [{ r: 173, g: 216, b: 230 }],
   pointToCenter: [{ r: 139, g: 0, b: 0 }],
   wave: [
