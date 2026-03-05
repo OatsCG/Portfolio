@@ -2,7 +2,14 @@
   class CanvasFrontend {
     constructor(canvasId) {
       this.canvas = document.getElementById(canvasId);
-      this.gl = this.canvas.getContext("webgl2");
+      this.gl = this.canvas.getContext("webgl2", {
+        alpha: true,
+        preserveDrawingBuffer: false,
+        antialias: false,
+        depth: false,
+        stencil: false,
+      });
+
       if (!this.gl) {
         console.error("WebGL2 not supported by your browser.");
         return;
@@ -16,8 +23,8 @@
       this.count = 0;
       this.particleData = new Float32Array(0);
 
-      // Max number of conic gradient stops supported in shader
       this.MAX_GRADIENT_COLORS = 16;
+      this.fadeFactor = 0.95; // keep 90% of previous frame each render
 
       this.initGL();
       this.resizeCanvas();
@@ -26,6 +33,9 @@
     initGL() {
       const gl = this.gl;
 
+      // -----------------------------
+      // PARTICLE PROGRAM
+      // -----------------------------
       const vertexShaderSource = `#version 300 es
         precision mediump float;
 
@@ -33,7 +43,6 @@
         uniform vec2 u_resolution;
         uniform float u_maxVelocity;
 
-        // Conic gradient uniforms
         uniform int u_gradientCount;
         uniform vec3 u_gradient[16];
 
@@ -43,7 +52,6 @@
         const float PI = 3.1415926535897932384626433832795;
 
         vec3 sampleConicGradient(float t) {
-          // t expected in [0, 1)
           if (u_gradientCount <= 0) {
             return vec3(1.0, 1.0, 1.0);
           }
@@ -52,10 +60,10 @@
           }
 
           float n = float(u_gradientCount);
-          float x = fract(t) * n;              // [0, n)
-          int i0 = int(floor(x));              // current stop
-          int i1 = (i0 + 1) % u_gradientCount; // next stop (wrap)
-          float f = fract(x);                  // local interpolation
+          float x = fract(t) * n;
+          int i0 = int(floor(x));
+          int i1 = (i0 + 1) % u_gradientCount;
+          float f = fract(x);
 
           return mix(u_gradient[i0], u_gradient[i1], f);
         }
@@ -72,12 +80,9 @@
           float speed = length(velocity);
           v_opacity = pow(clamp(speed / u_maxVelocity, 0.0, 1.0), 1.0);
 
-          // Angle from velocity direction -> [0, 1) for conic gradient lookup
-          // atan(y, x) returns [-PI, PI]
           float angle = atan(velocity.y, velocity.x);
           float t = (angle + PI) / (2.0 * PI);
 
-          // If velocity is near zero, default to first gradient color
           if (speed < 0.00001) {
             v_color = (u_gradientCount > 0) ? u_gradient[0] : vec3(1.0);
           } else {
@@ -93,7 +98,7 @@
         out vec4 outColor;
 
         void main() {
-          outColor = vec4(v_color, v_opacity);
+          outColor = vec4(v_color * v_opacity, v_opacity * v_opacity);
         }`;
 
       const vs = this.compileShader(gl.VERTEX_SHADER, vertexShaderSource);
@@ -105,11 +110,13 @@
       gl.linkProgram(this.program);
 
       if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
-        console.error("Could not link WebGL program", gl.getProgramInfoLog(this.program));
+        console.error("Could not link WebGL particle program", gl.getProgramInfoLog(this.program));
         return;
       }
 
-      gl.useProgram(this.program);
+      // Particle VAO
+      this.particleVAO = gl.createVertexArray();
+      gl.bindVertexArray(this.particleVAO);
 
       this.particleBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);
@@ -118,17 +125,85 @@
       gl.enableVertexAttribArray(this.particleDataLocation);
       gl.vertexAttribPointer(this.particleDataLocation, 4, gl.FLOAT, false, 16, 0);
 
+      gl.bindVertexArray(null);
+
       this.maxVelocityUniformLocation = gl.getUniformLocation(this.program, "u_maxVelocity");
       this.resolutionUniformLocation = gl.getUniformLocation(this.program, "u_resolution");
-
-      // New gradient uniforms
       this.gradientCountUniformLocation = gl.getUniformLocation(this.program, "u_gradientCount");
       this.gradientUniformLocation = gl.getUniformLocation(this.program, "u_gradient");
 
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+      // -----------------------------
+      // FULLSCREEN COPY/FADE PROGRAM
+      // -----------------------------
+      const screenVS = `#version 300 es
+        precision mediump float;
+
+        out vec2 v_uv;
+
+        const vec2 pos[6] = vec2[](
+          vec2(-1.0, -1.0), vec2( 1.0, -1.0), vec2(-1.0,  1.0),
+          vec2(-1.0,  1.0), vec2( 1.0, -1.0), vec2( 1.0,  1.0)
+        );
+
+        void main() {
+          vec2 p = pos[gl_VertexID];
+          v_uv = p * 0.5 + 0.5;
+          gl_Position = vec4(p, 0.0, 1.0);
+        }`;
+
+      const screenFS = `#version 300 es
+        precision mediump float;
+
+        in vec2 v_uv;
+        uniform sampler2D u_texture;
+        uniform float u_fadeFactor;
+        out vec4 outColor;
+
+        void main() {
+          vec4 c = texture(u_texture, v_uv);
+
+          // Fade both color and alpha
+          c *= u_fadeFactor;
+
+          // Kill tiny leftovers so they actually go black
+          if (c.r < 0.04 && c.g < 0.04 && c.b < 0.04 && c.a < 0.04) {
+            c = vec4(0.0);
+          }
+
+          outColor = c;
+        }`;
+
+      const svs = this.compileShader(gl.VERTEX_SHADER, screenVS);
+      const sfs = this.compileShader(gl.FRAGMENT_SHADER, screenFS);
+
+      this.screenProgram = gl.createProgram();
+      gl.attachShader(this.screenProgram, svs);
+      gl.attachShader(this.screenProgram, sfs);
+      gl.linkProgram(this.screenProgram);
+
+      if (!gl.getProgramParameter(this.screenProgram, gl.LINK_STATUS)) {
+        console.error("Could not link WebGL screen program", gl.getProgramInfoLog(this.screenProgram));
+        return;
+      }
+
+      this.screenTextureUniformLocation = gl.getUniformLocation(this.screenProgram, "u_texture");
+      this.screenFadeUniformLocation = gl.getUniformLocation(this.screenProgram, "u_fadeFactor");
+
+      // Empty VAO for gl_VertexID fullscreen draws
+      this.fullscreenVAO = gl.createVertexArray();
 
       gl.clearColor(0, 0, 0, 0);
+
+      // Reusable gradient array
+      this.gradientData = new Float32Array(this.MAX_GRADIENT_COLORS * 3);
+
+      // Ping-pong render targets
+      this.textures = [null, null];
+      this.framebuffers = [null, null];
+      this.readIndex = 0;
+      this.writeIndex = 1;
+
+      this.createPingPongTargets();
     }
 
     compileShader(type, source) {
@@ -136,16 +211,166 @@
       const shader = gl.createShader(type);
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
+
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
         console.error("Shader compile failed with:", gl.getShaderInfoLog(shader));
         gl.deleteShader(shader);
         return null;
       }
+
       return shader;
     }
 
+    createRenderTexture(width, height) {
+      const gl = this.gl;
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        width,
+        height,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        null
+      );
+
+      gl.bindTexture(gl.TEXTURE_2D, null);
+      return tex;
+    }
+
+    createFramebufferForTexture(texture) {
+      const gl = this.gl;
+      const fbo = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+        console.error("Framebuffer is not complete.");
+      }
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      return fbo;
+    }
+
+    createPingPongTargets() {
+      const gl = this.gl;
+
+      // Clean up old
+      for (let i = 0; i < 2; i++) {
+        if (this.textures[i]) gl.deleteTexture(this.textures[i]);
+        if (this.framebuffers[i]) gl.deleteFramebuffer(this.framebuffers[i]);
+      }
+
+      this.textures[0] = this.createRenderTexture(this.width, this.height);
+      this.textures[1] = this.createRenderTexture(this.width, this.height);
+
+      this.framebuffers[0] = this.createFramebufferForTexture(this.textures[0]);
+      this.framebuffers[1] = this.createFramebufferForTexture(this.textures[1]);
+
+      // Clear both targets
+      for (let i = 0; i < 2; i++) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffers[i]);
+        gl.viewport(0, 0, this.width, this.height);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+      }
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+      this.readIndex = 0;
+      this.writeIndex = 1;
+    }
+
+    // Fade previous texture into write target
     clearCanvas() {
-      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+      const gl = this.gl;
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffers[this.writeIndex]);
+      gl.viewport(0, 0, this.width, this.height);
+
+      gl.disable(gl.BLEND);
+      gl.useProgram(this.screenProgram);
+      gl.bindVertexArray(this.fullscreenVAO);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.textures[this.readIndex]);
+      gl.uniform1i(this.screenTextureUniformLocation, 0);
+      gl.uniform1f(this.screenFadeUniformLocation, this.fadeFactor);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      gl.bindVertexArray(null);
+    }
+
+    drawParticlesToWriteTarget(colors, maxVelocity) {
+      const gl = this.gl;
+
+      const stops = Array.isArray(colors) && colors.length
+        ? colors.slice(0, this.MAX_GRADIENT_COLORS)
+        : [{ r: 255, g: 255, b: 255 }];
+
+      this.gradientData.fill(0);
+      for (let i = 0; i < stops.length; i++) {
+        const c = stops[i];
+        this.gradientData[i * 3 + 0] = (c.r ?? 255) / 255;
+        this.gradientData[i * 3 + 1] = (c.g ?? 255) / 255;
+        this.gradientData[i * 3 + 2] = (c.b ?? 255) / 255;
+      }
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffers[this.writeIndex]);
+      gl.viewport(0, 0, this.width, this.height);
+
+      gl.useProgram(this.program);
+      gl.bindVertexArray(this.particleVAO);
+
+      gl.uniform1i(this.gradientCountUniformLocation, stops.length);
+      gl.uniform3fv(this.gradientUniformLocation, this.gradientData);
+      gl.uniform1f(this.maxVelocityUniformLocation, maxVelocity);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.particleData);
+
+      gl.enable(gl.BLEND);
+      gl.blendEquation(gl.FUNC_ADD);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+      gl.drawArrays(gl.POINTS, 0, this.count);
+
+      gl.bindVertexArray(null);
+    }
+
+    presentToScreen() {
+      const gl = this.gl;
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, this.width, this.height);
+
+      gl.disable(gl.BLEND);
+      gl.useProgram(this.screenProgram);
+      gl.bindVertexArray(this.fullscreenVAO);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.textures[this.writeIndex]);
+      gl.uniform1i(this.screenTextureUniformLocation, 0);
+      gl.uniform1f(this.screenFadeUniformLocation, 1.0); // no extra fade when presenting
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      gl.bindVertexArray(null);
+    }
+
+    swapTargets() {
+      const temp = this.readIndex;
+      this.readIndex = this.writeIndex;
+      this.writeIndex = temp;
     }
 
     resizeCanvas() {
@@ -156,8 +381,11 @@
 
       const gl = this.gl;
       gl.viewport(0, 0, this.width, this.height);
+
       gl.useProgram(this.program);
       gl.uniform2f(this.resolutionUniformLocation, this.width, this.height);
+
+      this.createPingPongTargets();
     }
 
     setParticleCount(n) {
@@ -187,35 +415,12 @@
       gl.bufferData(gl.ARRAY_BUFFER, this.particleData.byteLength, gl.DYNAMIC_DRAW);
     }
 
-    // colors: array of {r,g,b} conic gradient stops
     render(colors, maxVelocity) {
-      const gl = this.gl;
-      gl.useProgram(this.program);
-
-      // Fallback + clamp to shader max
-      const stops = Array.isArray(colors) && colors.length
-        ? colors.slice(0, this.MAX_GRADIENT_COLORS)
-        : [{ r: 255, g: 255, b: 255 }];
-
-      // Flatten to vec3 array (normalized 0..1)
-      const gradientData = new Float32Array(this.MAX_GRADIENT_COLORS * 3);
-      for (let i = 0; i < stops.length; i++) {
-        const c = stops[i];
-        gradientData[i * 3 + 0] = (c.r ?? 255) / 255;
-        gradientData[i * 3 + 1] = (c.g ?? 255) / 255;
-        gradientData[i * 3 + 2] = (c.b ?? 255) / 255;
-      }
-
-      gl.uniform1i(this.gradientCountUniformLocation, stops.length);
-      gl.uniform3fv(this.gradientUniformLocation, gradientData);
-      gl.uniform1f(this.maxVelocityUniformLocation, maxVelocity);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);
-      gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.particleData);
-
-      this.clearCanvas();
-      gl.drawArrays(gl.POINTS, 0, this.count);
-      mirrorParticleCanvasToBG()
+      this.clearCanvas();                         // read -> write with fade
+      this.drawParticlesToWriteTarget(colors, maxVelocity); // add new particles into write
+      this.presentToScreen();                    // write -> screen
+      this.swapTargets();                        // write becomes next frame's read
+      mirrorParticleCanvasToBG();
     }
   }
 
@@ -223,27 +428,7 @@
 })();
 
 // Copies the already-rendered WebGL canvas pixels onto a 2D background canvas.
-// No extra particle/sim calculations; it just blits the image.
 function mirrorParticleCanvasToBG() {
-  const src = document.getElementById("particleCanvas");     // WebGL2 canvas
-  const dst = document.getElementById("particleCanvasBG");   // 2D canvas
-
-  if (!src || !dst) return;
-
-  // Match exact pixel size (your sim uses canvas.width/height = innerWidth/innerHeight)
-  if (dst.width !== src.width) dst.width = src.width;
-  if (dst.height !== src.height) dst.height = src.height;
-
-  const ctx = dst.getContext("2d", { alpha: true });
-  if (!ctx) return;
-
-  // "copy" replaces pixels exactly (including alpha), no blending artifacts
-  ctx.globalCompositeOperation = "copy";
-  ctx.drawImage(src, 0, 0);
-  ctx.globalCompositeOperation = "source-over";
-}
-
-function mirrorParticleCanvasToBGFullOpacity() {
   const src = document.getElementById("particleCanvas");
   const dst = document.getElementById("particleCanvasBG");
 
@@ -255,18 +440,7 @@ function mirrorParticleCanvasToBGFullOpacity() {
   const ctx = dst.getContext("2d", { alpha: true });
   if (!ctx) return;
 
-  // Draw original
-  ctx.clearRect(0, 0, dst.width, dst.height);
+  ctx.globalCompositeOperation = "copy";
   ctx.drawImage(src, 0, 0);
-
-  // Read pixels
-  const imageData = ctx.getImageData(0, 0, dst.width, dst.height);
-  const data = imageData.data;
-
-  // Force every pixel to full opacity
-  for (let i = 3; i < data.length; i += 4) {
-    data[i] = data[i] + data[i]; // alpha channel
-  }
-
-  ctx.putImageData(imageData, 0, 0);
+  ctx.globalCompositeOperation = "source-over";
 }

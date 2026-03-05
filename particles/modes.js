@@ -22,47 +22,59 @@
   }
 
   function setBlueFlowMode(dir, state) {
-    dir.isFlowMode = false;
-    state.randomAccelFactor = state.alignmentFactor / 15;
-    state.targetColors = colors.flow;
-    state.targetGlowColor = glowColors.straight;
+  dir.isFlowMode = false;
+  state.randomAccelFactor = state.alignmentFactor / 15;
+  state.targetColors = colors.flow;
+  state.targetGlowColor = glowColors.straight;
 
-    const vTurn = SIM.maxVelocity * 0.7; // how strong the vertical "turn" is at row ends
+  const rows = SIM.gridRows;
+  const cols = SIM.gridCols;
 
-    for (let row = 0; row < SIM.gridRows; row++) {
-      const goRight = (row % 2 === 0);
+  const cx = (cols - 1) * 0.5;
+  const cy = (rows - 1) * 0.5;
 
-      for (let col = 0; col < SIM.gridCols; col++) {
-        const idx = row * SIM.gridCols + col;
+  // --- noise controls ---
+  // Small angle jitter (radians). 0.10 ≈ 5.7°, 0.17 ≈ 9.7°
+  const ANGLE_NOISE = 0.12;
 
-        // Default: straight horizontal flow
-        let vx = goRight ? SIM.maxVelocity : -SIM.maxVelocity;
-        let vy = 0;
+  // Optional: also vary speed slightly (keep small to avoid obvious "pulsing")
+  const SPEED_NOISE = 0.03; // ±3%
 
-        // At the end of each row, add a vertical component so particles "turn the corner"
-        // This creates a serpentine path and prevents spiral-like capture.
-        const isRowEnd = goRight ? (col === SIM.gridCols - 1) : (col === 0);
-        if (isRowEnd) {
-          // Move downward until the last row, then move upward to keep motion circulating
-          const goDown = row < (SIM.gridRows - 1);
-          vy = goDown ? vTurn : vTurn;
+  for (let row = 0; row < rows; row++) {
+    const isTop = row < cy;
 
-          // Keep some horizontal so it doesn't stall
-          vx *= 0.35;
-        }
+    for (let col = 0; col < cols; col++) {
+      const idx = row * cols + col;
 
-        // Normalize to max speed so every cell has comparable strength
-        const s = Math.sqrt(vx * vx + vy * vy) || 1;
-        vx = (vx / s) * SIM.maxVelocity;
-        vy = (vy / s) * SIM.maxVelocity;
+      const isLeft = col < cx;
 
-        dir.targetVx[idx] = vx;
-        dir.targetVy[idx] = vy;
-        dir.angVel[idx] = 0;
-        dir.angle[idx] = Math.atan2(vy, vx);
+      // Base quadrant direction
+      let baseVy = 1; // always downward
+      let baseVx;
+      if (isTop) {
+        baseVx = isLeft ? 1 : -1;   // inward on top
+      } else {
+        baseVx = isLeft ? -1 : 1;   // outward on bottom
       }
+
+      // Convert base direction to an angle, then add slight angular noise
+      let ang = Math.atan2(baseVy, baseVx);
+      ang += (Math.random() * 2 - 1) * ANGLE_NOISE;
+
+      // Base speed with slight noise
+      let speed = SIM.maxVelocity * 0.7 * (1 + (Math.random() * 2 - 1) * SPEED_NOISE);
+
+      // Back to vector
+      let vx = Math.cos(ang) * speed;
+      let vy = Math.sin(ang) * speed;
+
+      dir.targetVx[idx] = vx;
+      dir.targetVy[idx] = vy;
+      dir.angVel[idx] = 0;
+      dir.angle[idx] = ang;
     }
   }
+}
 
   function setClockwiseCircleMode(dir, state, geom) {
     dir.isFlowMode = false;
@@ -84,8 +96,8 @@
         const dy = cellCenterY - centerY;
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-        dir.targetVx[idx] = (dy / dist) * SIM.maxVelocity;
-        dir.targetVy[idx] = -(dx / dist) * SIM.maxVelocity;
+        dir.targetVx[idx] = (dy / dist) * SIM.maxVelocity * 0.7;
+        dir.targetVy[idx] = -(dx / dist) * SIM.maxVelocity * 0.7;
         dir.angVel[idx] = 0;
       }
     }
@@ -106,8 +118,8 @@
         const cellCenterX = (col + 0.5) * geom.cellWidth;
         const angle = Math.sin(frequency * cellCenterX + phaseShift);
 
-        dir.targetVx[idx] = Math.cos(angle) * SIM.maxVelocity;
-        dir.targetVy[idx] = Math.sin(angle) * SIM.maxVelocity * 1.5;
+        dir.targetVx[idx] = Math.cos(angle) * SIM.maxVelocity * 0.7;
+        dir.targetVy[idx] = Math.sin(angle) * SIM.maxVelocity * 1.5 * 0.7;
         dir.angVel[idx] = 0;
       }
     }

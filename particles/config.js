@@ -1,5 +1,5 @@
 window.SIM = {
-  numParticles: 100000,
+  numParticles: 60000,
 
   gridRows: 10,
   gridCols: 10,
