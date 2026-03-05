@@ -40,14 +40,14 @@ window.colors = {
   ],
   about: [
     { r: 120, g: 140, b: 220 }, // soft blue
-    { r: 180, g: 130, b: 210 },  // soft violet
     { r: 230, g: 120, b: 120 }, // soft red
+    { r: 180, g: 130, b: 210 },  // soft violet
     { r: 120, g: 140, b: 220 }, // soft blue
-    { r: 180, g: 130, b: 210 },  // soft violet
     { r: 230, g: 120, b: 120 }, // soft red
+    { r: 180, g: 130, b: 210 },  // soft violet
     { r: 120, g: 140, b: 220 }, // soft blue
-    { r: 180, g: 130, b: 210 },  // soft violet
     { r: 230, g: 120, b: 120 }, // soft red
+    { r: 180, g: 130, b: 210 },  // soft violet
   ],
   straight: [{ r: 173, g: 216, b: 230 }],
   pointToCenter: [{ r: 139, g: 0, b: 0 }],
