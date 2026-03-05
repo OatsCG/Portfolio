@@ -1,0 +1,142 @@
+/* Shared Carousel Section Styles */
+/* Used by: openmusic (section 2), carpass (section 3), utmsports (section 4) */
+
+.carousel-section {
+    width: 100%;
+    height: 43rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 20px;
+    z-index: 1;
+    position: relative;
+    overflow: hidden;
+    font-family: "Poppins";
+    padding: 0;
+    padding-bottom: 2%;
+}
+
+.carousel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: 3vw;
+    margin-right: 3vw;
+    margin-top: 1rem;
+    font-weight: 400;
+    font-size: var(--text-size-tile-p);
+    height: 18%;
+}
+
+.carousel-header-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: var(--text-size-title);
+    line-height: 1em;
+    max-height: 2em;
+    align-self: flex-start;
+}
+
+.carousel-left-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.carousel-right-section {
+    display: flex;
+    flex-direction: row;
+    gap: var(--text-size-tile-p);
+}
+
+.carousel-top-part {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.carousel-bottom-part p {
+    padding-left: calc(var(--text-size-title) + 10px);
+    margin-top: 3px;
+    opacity: 0.85;
+}
+
+.carousel-scroll-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 75%;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scroll-snap-align: center;
+    padding-left: 40vw;
+    padding-right: 40vw;
+}
+
+.carousel-cell {
+    width: 85rem;
+    max-width: 85vw;
+    height: 100%;
+    flex: 0 0 auto;
+    background-color: #22222466;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    scroll-snap-align: center;
+    overflow: hidden;
+}
+
+.carousel-cell p {
+    font-size: var(--text-size-tile-p);
+}
+
+.carousel-cell h1 {
+    font-size: var(--text-size-tile-title);
+    font-weight: 600;
+}
+
+.carousel-scroll-container::-webkit-scrollbar {
+    display: none;
+}
+
+.carousel-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    height: 7%;
+}
+
+.carousel-arrow-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    pointer-events: auto;
+    padding: 10px;
+}
+
+.carousel-arrow-button img {
+    width: 28px;
+    height: 28px;
+}
+
+.carousel-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.carousel-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #555;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.carousel-dot.active {
+    background-color: #ffffff;
+}

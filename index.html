@@ -11,27 +11,28 @@
         rel="stylesheet">
     <title>Charlie Giannis' Portfolio</title>
     <link rel="stylesheet" href="sectionvars.css">
-    <link rel="stylesheet" href="home/section1.css">
-    <link rel="stylesheet" href="openmusic/section2.css">
-    <link rel="stylesheet" href="carpass/section3.css">
-    <link rel="stylesheet" href="utmsports/section4.css">
-    <link rel="stylesheet" href="contact/section5.css">
+    <link rel="stylesheet" href="carousel.css">
+    <link rel="stylesheet" href="home/homeSection.css">
+    <link rel="stylesheet" href="openmusic/openmusicSection.css">
+    <link rel="stylesheet" href="carpass/carpassSection.css">
+    <link rel="stylesheet" href="utmsports/unisportsSection.css">
+    <link rel="stylesheet" href="contact/contactSection.css">
     <link rel="stylesheet" href="modal/modal.css">
 </head>
 
 
 <body>
     <div class="overlay">
-        <button class="nav-button" data-section="section-2">
+        <button class="nav-button" data-section="openmusic-section">
             <img src="topbar/openmusic_tint.png" alt="Openmusic Icon" class="button-icon nbutton-1">
             Openmusic
         </button>
-        <button class="nav-button" data-section="section-3">
+        <button class="nav-button" data-section="carpass-section">
             <img src="topbar/carpass_tint.png" alt="CarPass Icon" class="button-icon nbutton-2"
                 style="-webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.6)); mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.3));">
             CarPass
         </button>
-        <button class="nav-button" data-section="section-4">
+        <button class="nav-button" data-section="unisports-section">
             <img src="topbar/utmsports_tint.png" alt="Openmusic Icon" class="button-icon nbutton-3">
             UniSports
         </button>
@@ -64,22 +65,22 @@
     </div>
 
 
-    <div class="section-1">
-        <div class="section-1-texts-box">
-            <div class="section-1-titles-box">
-                <p class="section-1-title-middle">
+    <div class="home-section">
+        <div class="home-texts-box">
+            <div class="home-titles-box">
+                <p class="home-title-middle">
                     Charlie Giannis
                 </p>
-                <p class="section-1-title-bottom">
+                <p class="home-title-bottom">
                     iOS App Developer<br>4th Year UTM Computer Science Specialist, Math Minor, and Forensics Minor
                 </p>
-                <p class="section-1-next-subtitle">
+                <p class="home-next-subtitle">
                     Scroll to explore my projects.
                 </p>
             </div>
         </div>
-        <div class="particle-buttons">
-            <button class="show-info-button section-1-button"
+        <div class="home-particle-buttons">
+            <button class="show-info-button"
                 onclick="openModal('Dot Visualizer', 'JS, HTML5 Canvas, WebGL Shaders', '20,000 particles influenced by a 10x10 grid of vector cells. The design changes based on the section you\'re scrolled to. Try it\!<br><br>Custom velocity and acceleration modifiers power the designs, as well as angular accelerations on each cell. For efficiency, WebGL vertex shaders are used to batch draw calls and forward computing to the GPU. Two box-shadows make the bloom effect.');">
                 <img src="modal/info.circle.fill.png" alt="Icon" class="button-icon">
                 <span class="button-text">Learn More</span>
@@ -105,24 +106,24 @@
 
 
 
-    <div class="section-2">
-        <div class="section-2-header">
+    <div class="openmusic-section carousel-section">
+        <div class="openmusic-header carousel-header">
             <!-- Left Section -->
-            <div class="left-section">
+            <div class="carousel-left-section">
                 <!-- Top part: Icon and Title -->
-                <div class="top-part">
+                <div class="carousel-top-part">
                     <img src="openmusic/openmusic_icon_dark.png"
                         style="width: var(--text-size-title); height: var(--text-size-title); border-radius: calc(var(--text-size-title) / 4); margin-right: 10px">
-                    <p class="section-2-header-title">Openmusic</p>
+                    <p class="openmusic-header-title carousel-header-title">Openmusic</p>
                 </div>
                 <!-- Bottom part: Subtitle text -->
-                <div class="bottom-part">
+                <div class="carousel-bottom-part">
                     <p>Free Music Streaming Platform</p>
                 </div>
             </div>
 
             <!-- Right Section -->
-            <div class="right-section">
+            <div class="carousel-right-section">
                 <a href="https://github.com/OatsCG/Openmusic" target="_blank" rel="noopener noreferrer"
                     style="filter: brightness(0.9);">
                     <img src="github-white.png" style="height: var(--image-button-size);">
@@ -135,8 +136,8 @@
         </div>
 
 
-        <div class="section-2-scroll-container">
-            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
+        <div class="openmusic-scroll-container carousel-scroll-container">
+            <div class="openmusic-cell carousel-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
                 <image id="openmusic_1" src="openmusic/openmusic_1.png"
                     style="max-width: 40%; max-height: 90%; padding-left: 6%;">
                 </image>
@@ -153,7 +154,7 @@
                     </p>
                 </div>
             </div>
-            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
+            <div class="openmusic-cell carousel-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
                 <div width="60%"
                     style="padding-right: 8%; padding-left: 12%; text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
                     <h1>
@@ -172,7 +173,7 @@
                 <image src="openmusic/openmusic_2.png" id="openmusic_2"
                     style="max-width: 40%; max-height: 120%; padding-right: 6%; padding-bottom: 100px"></image>
             </div>
-            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
+            <div class="openmusic-cell carousel-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
                 <div
                     style="padding-left: 3%; padding-right: 3%; padding-top: 0%; text-align: center; display: flex; flex-direction: column; align-items: center;">
                     <h1 style="padding-top:0%; padding-left: 5%; padding-right: 5%; margin-top: 0px;">
@@ -201,7 +202,7 @@
 
                 </div>
             </div>
-            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
+            <div class="openmusic-cell carousel-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
                 <div style="width: 20%; max-height: 95%; padding-left: 5%; padding-top: 3%; padding-bottom: 3%;">
                     <video id="openmusic_4a"
                         style="max-width: 100%; height: auto; border-radius: 1.5vw; filter: drop-shadow(0 0 1.00rem #00000055);"
@@ -226,7 +227,7 @@
                     </video>
                 </div>
             </div>
-            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
+            <div class="openmusic-cell carousel-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
                 <div width="60%" style="padding-left: 3%;  padding-bottom: 10%; text-align: start;">
                     <div style="display: flex; align-items: center; text-align: end;">
                         <image src="openmusic/openmusic_5a.png"
@@ -257,7 +258,7 @@
                     </video>
                 </div>
             </div>
-            <div class="section-2-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
+            <div class="openmusic-cell carousel-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
                 <image id="openmusic_6" src="openmusic/openmusic_6.png"
                     style="max-width: 50%; max-height: 95%; padding-left: 3%;">
                 </image>
@@ -284,29 +285,29 @@
                 </div>
             </div>
         </div>
-        <div class="section-2-navigation">
-            <button id="prevArrow2">
+        <div class="openmusic-navigation carousel-navigation">
+            <button id="prevArrowOpenmusic" class="carousel-arrow-button">
                 <img src="chevronleft.png" alt="Previous" />
             </button>
-            <div class="section-2-dots"></div>
-            <button id="nextArrow2">
+            <div class="openmusic-dots carousel-dots"></div>
+            <button id="nextArrowOpenmusic" class="carousel-arrow-button">
                 <img src="chevronright.png" alt="Next" />
             </button>
         </div>
     </div>
-    <div class="section-3">
-        <div class="section-3-header">
-            <div class="left-section">
-                <div class="top-part">
+    <div class="carpass-section carousel-section">
+        <div class="carpass-header carousel-header">
+            <div class="carousel-left-section">
+                <div class="carousel-top-part">
                     <img src="carpass/carpass_icon.png"
                         style="width: var(--text-size-title); height: var(--text-size-title); border-radius: calc(var(--text-size-title) / 4); margin-right: 10px">
-                    <p class="section-2-header-title">CarPass</p>
+                    <p class="carpass-header-title carousel-header-title">CarPass</p>
                 </div>
-                <div class="bottom-part">
+                <div class="carousel-bottom-part">
                     <p>Car Scheduler for Families</p>
                 </div>
             </div>
-            <div class="right-section">
+            <div class="carousel-right-section">
                 <a href="https://github.com/OatsCG/CarPass" target="_blank" rel="noopener noreferrer"
                     style="filter: brightness(0.9);">
                     <img src="github-white.png" style="height: var(--image-button-size);">
@@ -317,8 +318,8 @@
             </div>
         </div>
 
-        <div class="section-3-scroll-container">
-            <div class="section-3-cell" style="box-shadow: inset 0 0 80px #3a4fc43b;">
+        <div class="carpass-scroll-container carousel-scroll-container">
+            <div class="carpass-cell carousel-cell" style="box-shadow: inset 0 0 80px #3a4fc43b;">
                 <div width="60%" style="padding-right: 8%; padding-left: 12%;">
                     <h1>
                         Effortlessly Schedule Your Family Car
@@ -335,7 +336,7 @@
                 <image id="carpass_1" src="carpass/carpass_1.png"
                     style="max-width: 40%; max-height: 90%; padding-right: 6%;"></image>
             </div>
-            <div class="section-3-cell" style="box-shadow: inset 0 0 80px #3a4fc43b;">
+            <div class="carpass-cell carousel-cell" style="box-shadow: inset 0 0 80px #3a4fc43b;">
                 <image src="carpass/carpass_2a.png" id="carpass_2a"
                     style="max-width: 30%; max-height: 120%; padding-left: 6%; padding-bottom: 100px"></image>
                 <image src="carpass/carpass_2b.png" id="carpass_2b"
@@ -350,7 +351,7 @@
                     </p>
                 </div>
             </div>
-            <div class="section-3-cell" style="box-shadow: inset 0 0 80px #3a4fc43b;">
+            <div class="carpass-cell carousel-cell" style="box-shadow: inset 0 0 80px #3a4fc43b;">
                 <image src="carpass/carpass_3.png" id="carpass_3"
                     style="max-width: 40%; max-height: 90%; padding-left: 6%;"></image>
                 <div width="60%" style="padding-left: 8%; padding-right: 12%; text-align: left;">
@@ -368,7 +369,7 @@
                     </button>
                 </div>
             </div>
-            <div class="section-3-cell" style="box-shadow: inset 0 0 80px #3a4fc43b;">
+            <div class="carpass-cell carousel-cell" style="box-shadow: inset 0 0 80px #3a4fc43b;">
                 <image id="carpass_4" src="carpass/carpass_4.png"
                     style="max-width: 50%; max-height: 90%; padding-left: 3%;"></image>
                 <div width="50%" style="padding-left: 3%; padding-right: 6%;">
@@ -387,29 +388,29 @@
                 </div>
             </div>
         </div>
-        <div class="section-3-navigation">
-            <button id="prevArrow3">
+        <div class="carpass-navigation carousel-navigation">
+            <button id="prevArrowCarpass" class="carousel-arrow-button">
                 <img src="chevronleft.png" alt="Previous" />
             </button>
-            <div class="section-3-dots"></div>
-            <button id="nextArrow3">
+            <div class="carpass-dots carousel-dots"></div>
+            <button id="nextArrowCarpass" class="carousel-arrow-button">
                 <img src="chevronright.png" alt="Next" />
             </button>
         </div>
     </div>
-    <div class="section-4">
-        <div class="section-4-header">
-            <div class="left-section">
-                <div class="top-part">
+    <div class="unisports-section carousel-section">
+        <div class="unisports-header carousel-header">
+            <div class="carousel-left-section">
+                <div class="carousel-top-part">
                     <img src="utmsports/utmsports_icon.png"
                         style="width: var(--text-size-title); height: var(--text-size-title); border-radius: calc(var(--text-size-title) / 4); margin-right: 10px">
-                    <p class="section-4-header-title">UniSports</p>
+                    <p class="unisports-header-title carousel-header-title">UniSports</p>
                 </div>
-                <div class="bottom-part">
+                <div class="carousel-bottom-part">
                     <p>University Sports Schedules. <a href="https://unisports.openmusic.app">https://unisports.openmusic.app</a></p>
                 </div>
             </div>
-            <div class="right-section">
+            <div class="carousel-right-section">
                 <a href="https://github.com/OatsCG/UTM-Drop-in-Sports" target="_blank" rel="noopener noreferrer"
                     style="filter: brightness(0.9);">
                     <img src="github-white.png" style="height: var(--image-button-size);">
@@ -421,8 +422,8 @@
             </div>
         </div>
 
-        <div class="section-4-scroll-container">
-            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #203f9c3b;">
+        <div class="unisports-scroll-container carousel-scroll-container">
+            <div class="unisports-cell carousel-cell" style="box-shadow: inset 0 0 80px #203f9c3b;">
                 <image id="utmsports_1" src="utmsports/utmsports_1.png"
                     style="max-width: 40%; max-height: 90%; padding-left: 6%;"></image>
                 <div width="60%" style="padding-left: 8%; padding-right: 12%;">
@@ -439,7 +440,7 @@
                     </p>
                 </div>
             </div>
-            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #203f9c3b;">
+            <div class="openmusic-cell carousel-cell" style="box-shadow: inset 0 0 80px #783ac43b;">
                 <div width="60%"
                     style="padding-right: 8%; padding-left: 12%; text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
                     <h1>
@@ -458,7 +459,7 @@
                 <image src="utmsports/utmsports_2.png" id="utmsports_2"
                     style="max-width:40%; max-height: 120%; padding-right: 6%; padding-bottom: 100px"></image>
             </div>
-            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #203f9c3b;">
+            <div class="unisports-cell carousel-cell" style="box-shadow: inset 0 0 80px #203f9c3b;">
                 <video autoplay muted loop
                     style="max-width: 20%; max-height: 90%; margin-left: 6%; border-radius: 1.5vw;">
                     <source src="utmsports/utmsports_3a.mp4" type="video/mp4">
@@ -472,10 +473,10 @@
                         Save events and collect bronze, silver, and gold medals for each sport and activity.
                     </p>
                 </div>
-                <image src="utmsports/utmsports_3b.png" id="section-4-image-2"
+                <image src="utmsports/utmsports_3b.png" id="utmsports_3b"
                     style="max-width: 20%; max-height: 100%; padding-right: 6%;"></image>
             </div>
-            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #203f9c3b;">
+            <div class="unisports-cell carousel-cell" style="box-shadow: inset 0 0 80px #203f9c3b;">
                 <div width="60%" style="padding-right: 8%; padding-left: 12%; text-align: right;">
                     <h1>
                         Track Events and Set Reminders
@@ -487,7 +488,7 @@
                 <image src="utmsports/utmsports_4.png" id="utmsports_4"
                     style="max-width: 40%; max-height: 120%; padding-right: 6%; padding-bottom: 300px"></image>
             </div>
-            <div class="section-4-cell" style="box-shadow: inset 0 0 80px #203f9c3b;">
+            <div class="unisports-cell carousel-cell" style="box-shadow: inset 0 0 80px #203f9c3b;">
                 <image id="utmsports_5" src="utmsports/utmsports_5.png"
                     style="max-width: 50%; max-height: 95%; padding-left: 3%;"></image>
                 <div width="50%" style="padding-left: 3%; padding-right: 6%;">
@@ -506,21 +507,21 @@
                 </div>
             </div>
         </div>
-        <div class="section-4-navigation">
-            <button id="prevArrow4">
+        <div class="unisports-navigation carousel-navigation">
+            <button id="prevArrowUnisports" class="carousel-arrow-button">
                 <img src="chevronleft.png" alt="Previous" />
             </button>
-            <div class="section-4-dots"></div>
-            <button id="nextArrow4">
+            <div class="unisports-dots carousel-dots"></div>
+            <button id="nextArrowUnisports" class="carousel-arrow-button">
                 <img src="chevronright.png" alt="Next" />
             </button>
         </div>
     </div>
-    <div class="section-5">
-        <p class="section-5-header">
+    <div class="contact-section">
+        <p class="contact-header">
             Contact Me
         </p>
-        <p class="section-5-email">
+        <p class="contact-email">
             <a href="mailto:charlie.giannis@mail.utoronto.ca">charlie.giannis@mail.utoronto.ca</a>
         </p>
         <div class="social-links">
@@ -537,10 +538,11 @@
 </body>
 
 
-<script src="home/section1.js"></script>
-<script src="openmusic/section2.js"></script>
-<script src="carpass/section3.js"></script>
-<script src="utmsports/section4.js"></script>
+<script src="home/homeSection.js"></script>
+<script src="openmusic/openmusicSection.js"></script>
+<script src="carpass/carpassSection.js"></script>
+<script src="utmsports/unisportsSection.js"></script>
+<script src="contact/contactSection.js"></script>
 <script src="modal/modal.js"></script>
 
 <script src="particles/config.js"></script>
