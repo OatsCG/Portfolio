@@ -114,6 +114,7 @@ body {
     display: flex;
     align-items: flex-start;
     flex-direction: column;
+    filter: drop-shadow(0 0 0.5rem #00000055);
 }
 
 .home-title-top {

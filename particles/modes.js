@@ -23,7 +23,7 @@
 
   function setBlueFlowMode(dir, state) {
   dir.isFlowMode = false;
-  state.randomAccelFactor = state.alignmentFactor / 15;
+  state.randomAccelFactor = state.alignmentFactor * 4;
   state.targetColors = colors.flow;
   state.targetGlowColor = glowColors.straight;
 
@@ -35,7 +35,7 @@
 
   // --- noise controls ---
   // Small angle jitter (radians). 0.10 ≈ 5.7°, 0.17 ≈ 9.7°
-  const ANGLE_NOISE = 0.12;
+  const ANGLE_NOISE = 0.00;
 
   // Optional: also vary speed slightly (keep small to avoid obvious "pulsing")
   const SPEED_NOISE = 0.03; // ±3%
