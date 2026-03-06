@@ -28,6 +28,10 @@
     height: 18%;
 }
 
+a:visited {
+  color: white;
+}
+
 .carousel-header-title {
     margin: 0;
     font-weight: 600;
