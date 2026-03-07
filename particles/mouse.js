@@ -22,7 +22,7 @@
       return [x, y];
     }
 
-    canvasFrontend.canvas.addEventListener("mousemove", (event) => {
+    document.addEventListener("mousemove", (event) => {
       if (!SIM.is_animation_enabled) { return }
       const now = performance.now();
 
