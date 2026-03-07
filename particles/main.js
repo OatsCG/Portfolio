@@ -55,7 +55,7 @@
   // Delta time tracking for framerate independence
   // Reference: 120fps = 8.333ms per frame
   let lastFrameTime = performance.now();
-  const REF_FPS = 120;
+  const REF_FPS = 100;
   const REF_FRAME_TIME_MS = 1000 / REF_FPS;
 
   // Framerate-independent decay factors
