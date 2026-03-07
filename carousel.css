@@ -6,7 +6,8 @@
     height: 43rem;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    /* justify-content: space-around; */
+    /* gap: 10px; */
     padding: 20px;
     z-index: 1;
     position: relative;
@@ -25,7 +26,8 @@
     margin-top: 1rem;
     font-weight: 400;
     font-size: var(--text-size-tile-p);
-    height: 18%;
+    height: calc(var(--text-size-title) * 1.5);
+    /* var(--text-size-tile */
     filter: drop-shadow(0 0 0.5rem #00000055);
 }
 
