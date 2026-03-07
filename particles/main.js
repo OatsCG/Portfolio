@@ -52,27 +52,9 @@
   let lastBucketTime = 0;
   const bucketIntervalMs = (SIM.mouseBucketIntervalMs ?? 50);
 
-  // Delta time tracking for framerate independence
-  // Reference: 120fps = 8.333ms per frame
-  let lastFrameTime = performance.now();
-  const REF_FPS = 100;
-  const REF_FRAME_TIME_MS = 1000 / REF_FPS;
-
-  // Framerate-independent decay factors
-  // These will be updated based on actual delta time
-  let dtRatio = 1.0; // deltaTimeMs / REF_FRAME_TIME_MS
-  let dtScale = 1.0; // for position updates; at 120fps this is 1.0
-
-  // Pre-calculate base factors (at 120fps baseline)
-  const BASE_FADE_FACTOR = 0.95; // trail decay per frame
-  const BASE_DECAY_FACTOR = 0.9; // mouse decay per 10ms window
-  let currentFadeFactor = BASE_FADE_FACTOR;
-  let currentDecayFactor = BASE_DECAY_FACTOR;
-
-  // Direction field update timing (framerate independent)
-  // At 120fps with frameInterval=10, updates every ~83.33ms
-  const DIR_UPDATE_INTERVAL_MS = (SIM.frameInterval * REF_FRAME_TIME_MS);
-  let directionFieldAccumulator = 0;
+  // Fixed timestep simulation at 120fps
+  const FIXED_TIMESTEP_MS = 1000 / 120; // 8.333ms per simulation step
+  let simulationInterval = null; // Will be set after initialization
 
   function rebuildMouseStructures() {
     mouseCellCount = mouseGeom.rows * mouseGeom.cols;
@@ -249,34 +231,11 @@
 
   window.addEventListener("resize", resizeCanvas);
 
-  function animate() {
-    // Calculate delta time and framerate normalization
-    const now = performance.now();
-    const deltaTimeMs = Math.max(0.1, now - lastFrameTime);
-    lastFrameTime = now;
-
-    // Ratio of actual frame time to reference frame time (120fps)
-    dtRatio = deltaTimeMs / REF_FRAME_TIME_MS;
-
-    // Position scale factor: normalize velocity * dtScale for any framerate
-    // At 120fps (8.333ms), dtScale = 1.0, so position updates by vx/vy per frame
-    // At other framerates, scale proportionally to maintain same visual movement per second
-    dtScale = dtRatio;
-
-    // Trail decay: at 120fps it's 0.95 per frame
-    // At other framerates, apply exponential: 0.95^(deltaTime / refFrameTime)
-    currentFadeFactor = Math.pow(BASE_FADE_FACTOR, dtRatio);
-
-    // Mouse decay: at 120fps it's applied every 10ms with 0.9 factor
-    // Normalize to current framerate
-    currentDecayFactor = Math.pow(BASE_DECAY_FACTOR, dtRatio);
-
-    // Update canvas frontend with normalized fade factor
-    canvasFrontend.fadeFactor = currentFadeFactor;
-
+  function simulateFrame() {
+    // Fixed 120fps simulation step
     state.currentColors = transitionColors(state.currentColors, state.targetColors);
 
-    decayMouse(mouse, currentDecayFactor);
+    decayMouse(mouse);
 
     const data = canvasFrontend.particleData;
     const N = canvasFrontend.count;
@@ -333,15 +292,14 @@
       let t = 1 - (distCenterSq / maxDistSq);
       if (t < 0) t = 0;
       const influenceFactor = t * t;
-      const adjAlignFactor = state.alignmentFactor * influenceFactor * dtRatio;
+      const adjAlignFactor = state.alignmentFactor * influenceFactor;
 
       // floatid REMOVED: no per-particle bias
       vx += (targetVx - vx) * adjAlignFactor;
       vy += (targetVy - vy) * adjAlignFactor;
 
-      // Scale random acceleration by dtRatio for framerate independence
-      vx += (Math.random() - 0.5) * state.randomAccelFactor * dtRatio;
-      vy += (Math.random() - 0.5) * state.randomAccelFactor * dtRatio;
+      vx += (Math.random() - 0.5) * state.randomAccelFactor;
+      vy += (Math.random() - 0.5) * state.randomAccelFactor;
 
       const sp2 = vx * vx + vy * vy;
       if (sp2 > maxVelocitySq) {
@@ -350,8 +308,8 @@
         vy *= inv;
       }
 
-      x += vx * dtScale;
-      y += vy * dtScale;
+      x += vx;
+      y += vy;
 
       if (x < 0) x += w;
       else if (x >= w) x -= w;
@@ -388,9 +346,8 @@
             let vx = data[j + 2];
             let vy = data[j + 3];
 
-          // Scale mouse impulse by dtRatio for framerate independence
-          vx += mouse.vx * infl * mouse.strength * dtRatio;
-          vy += mouse.vy * infl * mouse.strength * dtRatio;
+            vx += mouse.vx * infl * mouse.strength;
+            vy += mouse.vy * infl * mouse.strength;
 
             data[j + 2] = vx;
             data[j + 3] = vy;
@@ -399,18 +356,18 @@
       }
     }
 
+    state.frameCounter++;
+    if ((state.frameCounter % SIM.frameInterval) === 0) updateDirectionField(dir);
+  }
+
+  function animate() {
+    // Render the current simulation state
+    canvasFrontend.fadeFactor = 0.95;
     canvasFrontend.render(state.currentColors, SIM.maxVelocity);
 
-    // Update direction field based on accumulated time (framerate independent)
-    directionFieldAccumulator += deltaTimeMs;
-    if (directionFieldAccumulator >= DIR_UPDATE_INTERVAL_MS) {
-      directionFieldAccumulator -= DIR_UPDATE_INTERVAL_MS;
-      updateDirectionField(dir);
-    }
-
     if (SIM.is_animation_enabled) {
-      requestAnimationFrame(animate);
-      // setTimeout(animate, 8)
+      setTimeout(animate, 8)
+      // requestAnimationFrame(animate);
     }
   }
 
@@ -423,6 +380,10 @@
   bucketParticlesMouseGrid_Typed();
   lastBucketTime = performance.now();
 
+  // Start simulation at fixed 120fps with setInterval
+  simulationInterval = setInterval(simulateFrame, FIXED_TIMESTEP_MS);
+
+  // Start rendering at display refresh rate with requestAnimationFrame
   animate();
 
   // Safe UI bindings (avoid recursion)
@@ -441,6 +402,20 @@
   window.setClockwiseOffsetCircleMode = () => _setClockwiseOffsetCircleMode(dir, state, geom);
   window.resizeCanvas = () => resizeCanvas();
   window.animate = () => animate();
+  
+  // Control functions for simulation
+  window.stopSimulation = () => {
+    if (simulationInterval) {
+      clearInterval(simulationInterval);
+      simulationInterval = null;
+    }
+  };
+
+  window.startSimulation = () => {
+    if (!simulationInterval) {
+      simulationInterval = setInterval(simulateFrame, FIXED_TIMESTEP_MS);
+    }
+  };
 
   const _add10k = window.add10k;
   const _remove10k = window.remove10k;

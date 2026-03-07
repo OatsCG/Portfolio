@@ -60,6 +60,11 @@ function toggleAnimation(blackout = true) {
 
     if (SIM.is_animation_enabled === true) {
       console.log("toggling off")
+        // Stop the simulation loop
+        if (window.stopSimulation) {
+          window.stopSimulation();
+        }
+        
         if (blackout == true) {
           console.log("blackout")
             canvas.style.animation = "fadeOut 0.5s ease-in forwards";
@@ -77,7 +82,14 @@ function toggleAnimation(blackout = true) {
     } else {
         SIM.is_animation_enabled = true;
         window.resizeCanvas()
-        window.animate();
+        
+        // Restart both simulation and rendering
+        if (window.startSimulation) {
+          window.startSimulation();
+        }
+        if (window.animate) {
+          window.animate();
+        }
         // Animate canvas in
         canvas.style.opacity = 1;
         canvas.style.animation = "fadeIn 0.5s ease-in forwards";
