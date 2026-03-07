@@ -1,5 +1,5 @@
 window.SIM = {
-  numParticles: 60000,
+  numParticles: Math.floor((window.innerHeight * window.innerWidth) / 100000) * 10000,
 
   gridRows: 10,
   gridCols: 10,
