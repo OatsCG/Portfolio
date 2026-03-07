@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Check if any section is in view
         for (const [key, section] of Object.entries(sections)) {
             const rect = section.getBoundingClientRect();
-            if (rect.top <= 150 && rect.bottom >= 150) {
+            if (rect.top <= 250 && rect.bottom >= 250) {
                 newAnchor = key;
                 break;
             }
