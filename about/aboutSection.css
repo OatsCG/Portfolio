@@ -19,7 +19,7 @@
     max-width: 50%;
     font-family: "Merriweather", serif;
     font-weight: 700;
-    filter: drop-shadow(0 0 0.85rem black) drop-shadow(0 0 0.85rem black);
+    filter: drop-shadow(0 0 0.85rem black) drop-shadow(0 0 1.4rem #000000ff);
 }
 
 .about-title {
