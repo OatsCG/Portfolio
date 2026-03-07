@@ -50,11 +50,12 @@
     return mouse;
   }
 
-  function decayMouse(mouse) {
+  function decayMouse(mouse, normalizedDecayFactor = SIM.decayFactor) {
     const now = performance.now();
     if (mouse.active && now - mouse.lastMoveTime > 10) {
-      mouse.vx *= SIM.decayFactor;
-      mouse.vy *= SIM.decayFactor;
+      // Apply normalized decay factor (accounts for framerate)
+      mouse.vx *= normalizedDecayFactor;
+      mouse.vy *= normalizedDecayFactor;
 
       if ((mouse.vx * mouse.vx + mouse.vy * mouse.vy) < 0.0001) {
         mouse.vx = 0;
