@@ -103,9 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Function to update button icon based on video state
     const updateButtonIcon = () => {
         if (video1.paused) {
-            playButton.src = "openmusic/playbutton.png";
+            playButton.src = "openmusic/playbutton.webp";
         } else {
-            playButton.src = "openmusic/pausebutton.png";
+            playButton.src = "openmusic/pausebutton.webp";
         }
     };
 
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Change to "replay" icon when the video ends
     video1.addEventListener('ended', () => {
-        playButton.src = "openmusic/replaybutton.png";
+        playButton.src = "openmusic/replaybutton.webp";
     });
 
     // Update the button to "pause" when video is playing and "play" when paused
