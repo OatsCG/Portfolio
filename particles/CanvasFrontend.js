@@ -39,7 +39,9 @@
       const vertexShaderSource = `#version 300 es
         precision mediump float;
 
-        in vec4 a_particleData; // x, y, vx, vy
+        in vec4 a_particleData;     // x, y, vx, vy
+        in vec2 a_prevParticlePos;  // prevX, prevY
+        
         uniform vec2 u_resolution;
         uniform float u_maxVelocity;
 
@@ -48,6 +50,7 @@
 
         out float v_opacity;
         out vec3 v_color;
+        out float v_lineDistance;
 
         const float PI = 3.1415926535897932384626433832795;
 
@@ -69,13 +72,18 @@
         }
 
         void main() {
-          vec2 position = a_particleData.xy;
+          // Use gl_VertexID to determine which endpoint of the line we're rendering
+          // 0 = previous position, 1 = current position
+          vec2 position = (gl_VertexID == 0) ? a_prevParticlePos : a_particleData.xy;
           vec2 velocity = a_particleData.zw;
+
+          // Calculate distance between prev and current position to detect wraparound
+          vec2 delta = a_particleData.xy - a_prevParticlePos;
+          v_lineDistance = length(delta);
 
           vec2 zeroToOne = position / u_resolution;
           vec2 clipSpace = zeroToOne * 2.0 - 1.0;
           gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
-          gl_PointSize = 1.0;
 
           float speed = length(velocity);
           v_opacity = pow(clamp(speed / u_maxVelocity, 0.0, 1.0), 1.0);
@@ -95,10 +103,18 @@
 
         in float v_opacity;
         in vec3 v_color;
+        in float v_lineDistance;
+        
+        uniform float u_maxLineDistance;
+        
         out vec4 outColor;
 
         void main() {
-          outColor = vec4(v_color * v_opacity, v_opacity * v_opacity);
+          // Discard fragments if the line segment is too long (wraparound detection)
+          if (v_lineDistance > u_maxLineDistance) {
+            discard;
+          }
+          outColor = vec4(v_color * v_opacity * 0.66, v_opacity * v_opacity * 0.66);
         }`;
 
       const vs = this.compileShader(gl.VERTEX_SHADER, vertexShaderSource);
@@ -123,7 +139,13 @@
 
       this.particleDataLocation = gl.getAttribLocation(this.program, "a_particleData");
       gl.enableVertexAttribArray(this.particleDataLocation);
-      gl.vertexAttribPointer(this.particleDataLocation, 4, gl.FLOAT, false, 16, 0);
+      gl.vertexAttribPointer(this.particleDataLocation, 4, gl.FLOAT, false, 24, 0);
+      gl.vertexAttribDivisor(this.particleDataLocation, 2);
+
+      this.prevParticlePosLocation = gl.getAttribLocation(this.program, "a_prevParticlePos");
+      gl.enableVertexAttribArray(this.prevParticlePosLocation);
+      gl.vertexAttribPointer(this.prevParticlePosLocation, 2, gl.FLOAT, false, 24, 16);
+      gl.vertexAttribDivisor(this.prevParticlePosLocation, 2);
 
       gl.bindVertexArray(null);
 
@@ -131,6 +153,7 @@
       this.resolutionUniformLocation = gl.getUniformLocation(this.program, "u_resolution");
       this.gradientCountUniformLocation = gl.getUniformLocation(this.program, "u_gradientCount");
       this.gradientUniformLocation = gl.getUniformLocation(this.program, "u_gradient");
+      this.maxLineDistanceUniformLocation = gl.getUniformLocation(this.program, "u_maxLineDistance");
 
       // -----------------------------
       // FULLSCREEN COPY/FADE PROGRAM
@@ -334,6 +357,10 @@
       gl.uniform1i(this.gradientCountUniformLocation, stops.length);
       gl.uniform3fv(this.gradientUniformLocation, this.gradientData);
       gl.uniform1f(this.maxVelocityUniformLocation, maxVelocity);
+      
+      // Set max line distance threshold to ~20% of max screen dimension to catch wraparounds
+      const maxLineDist = Math.max(this.width, this.height) * 0.2;
+      gl.uniform1f(this.maxLineDistanceUniformLocation, maxLineDist);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer);
       gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.particleData);
@@ -342,7 +369,7 @@
       gl.blendEquation(gl.FUNC_ADD);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
-      gl.drawArrays(gl.POINTS, 0, this.count);
+      gl.drawArraysInstanced(gl.LINES, 0, 2, this.count);
 
       gl.bindVertexArray(null);
     }
@@ -390,7 +417,7 @@
 
     setParticleCount(n) {
       this.count = n | 0;
-      this.particleData = new Float32Array(this.count * 4);
+      this.particleData = new Float32Array(this.count * 6);
       document.getElementById("particleCount").textContent = n;
 
       const gl = this.gl;
@@ -402,8 +429,8 @@
       newCount |= 0;
       if (newCount === this.count) return;
 
-      const newData = new Float32Array(newCount * 4);
-      const copyFloats = Math.min(this.count, newCount) * 4;
+      const newData = new Float32Array(newCount * 6);
+      const copyFloats = Math.min(this.count, newCount) * 6;
       newData.set(this.particleData.subarray(0, copyFloats), 0);
 
       this.count = newCount;

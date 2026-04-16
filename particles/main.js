@@ -128,7 +128,7 @@
 
     cellCounts.fill(0);
 
-    for (let i = 0, j = 0; i < N; i++, j += 4) {
+    for (let i = 0, j = 0; i < N; i++, j += 6) {
       const x = data[j];
       const y = data[j + 1];
 
@@ -153,7 +153,7 @@
       writePtr[c] = cellOffsets[c];
     }
 
-    for (let i = 0, j = 0; i < N; i++, j += 4) {
+    for (let i = 0, j = 0; i < N; i++, j += 6) {
       const x = data[j];
       const y = data[j + 1];
 
@@ -263,7 +263,7 @@
     const halfCellH = geom.cellHeight * 0.5;
     const maxDistSq = halfCellW * halfCellW + halfCellH * halfCellH;
 
-    for (let i = 0, j = 0; i < N; i++, j += 4) {
+    for (let i = 0, j = 0; i < N; i++, j += 6) {
       let x = data[j];
       let y = data[j + 1];
       let vx = data[j + 2];
@@ -317,6 +317,10 @@
       if (y < 0) y += h;
       else if (y >= h) y -= h;
 
+      // Store previous position before updating current position
+      data[j + 4] = data[j];
+      data[j + 5] = data[j + 1];
+
       data[j] = x;
       data[j + 1] = y;
       data[j + 2] = vx;
@@ -332,7 +336,7 @@
 
         for (let p = start; p < end; p++) {
           const i = bucketIndices[p];
-          const j = i * 4;
+          const j = i * 6;
 
           const x = data[j];
           const y = data[j + 1];

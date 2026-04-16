@@ -12,11 +12,18 @@
     const w = canvasFrontend.width;
     const h = canvasFrontend.height;
 
-    for (let i = 0, j = 0; i < n; i++, j += 4) {
-      data[j] = Math.random() * w;                 // x
-      data[j + 1] = Math.random() * h;             // y
-      data[j + 2] = (Math.random() - 0.5) * SIM.maxVelocity; // vx
-      data[j + 3] = (Math.random() - 0.5) * SIM.maxVelocity; // vy
+    for (let i = 0, j = 0; i < n; i++, j += 6) {
+      const x = Math.random() * w;
+      const y = Math.random() * h;
+      const vx = (Math.random() - 0.5) * SIM.maxVelocity;
+      const vy = (Math.random() - 0.5) * SIM.maxVelocity;
+
+      data[j] = x;           // x
+      data[j + 1] = y;       // y
+      data[j + 2] = vx;      // vx
+      data[j + 3] = vy;      // vy
+      data[j + 4] = x;       // prevX
+      data[j + 5] = y;       // prevY
     }
   }
 
@@ -31,11 +38,16 @@
     const w = canvasFrontend.width;
     const h = canvasFrontend.height;
 
-    for (let i = oldN, j = oldN * 4; i < newN; i++, j += 4) {
-      data[j] = Math.random() * w;
-      data[j + 1] = Math.random() * h;
-      data[j + 2] = 0;
-      data[j + 3] = 0;
+    for (let i = oldN, j = oldN * 6; i < newN; i++, j += 6) {
+      const x = Math.random() * w;
+      const y = Math.random() * h;
+
+      data[j] = x;           // x
+      data[j + 1] = y;       // y
+      data[j + 2] = 0;       // vx
+      data[j + 3] = 0;       // vy
+      data[j + 4] = x;       // prevX
+      data[j + 5] = y;       // prevY
     }
   }
 
