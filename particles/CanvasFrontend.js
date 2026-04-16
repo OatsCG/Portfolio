@@ -86,7 +86,10 @@
           gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
 
           float speed = length(velocity);
-          v_opacity = pow(clamp(speed / u_maxVelocity, 0.0, 1.0), 1.0);
+          float screenScale = length(u_resolution);
+          float normalizedSpeed = speed / screenScale;
+          float normalizedMaxVelocity = u_maxVelocity / screenScale;
+          v_opacity = pow(clamp(normalizedSpeed / normalizedMaxVelocity, 0.0, 1.0), 1.0);
 
           float angle = atan(velocity.y, velocity.x);
           float t = (angle + PI) / (2.0 * PI);
@@ -114,7 +117,7 @@
           if (v_lineDistance > u_maxLineDistance) {
             discard;
           }
-          outColor = vec4(v_color * v_opacity * 0.66, v_opacity * v_opacity * 0.66);
+          outColor = vec4(v_color * v_opacity * 0.88, v_opacity * v_opacity * 0.66);
         }`;
 
       const vs = this.compileShader(gl.VERTEX_SHADER, vertexShaderSource);
